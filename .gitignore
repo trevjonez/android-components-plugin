@@ -1,0 +1,10 @@
+.gradle/
+build/
+.idea/
+!.idea/codeStyles/
+!.idea/codeStyles/*
+
+
+*.iml
+.gradletasknamecache
+local.properties
