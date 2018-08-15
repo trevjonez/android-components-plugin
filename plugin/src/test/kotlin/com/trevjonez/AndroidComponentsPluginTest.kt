@@ -18,11 +18,22 @@ internal class AndroidComponentsPluginTest {
   }
 
   @Test
-  internal fun `lib can publish artifacts as expected`() {
+  internal fun `lib can publish build type variants as expected`() {
     GradleRunner.create()
         .withProjectDir(testLibDir)
         .forwardOutput()
         .withArguments("publish", "--stacktrace", "--build-cache", "--scan")
+        .withPluginClasspath()
+        .build()
+  }
+
+  @Test
+  internal fun `lib can publish build type and single flavor dimension variants as expected`() {
+    GradleRunner.create()
+        .withProjectDir(testLibDir)
+        .forwardOutput()
+        .withArguments("-b", "build-flavors.gradle.kts", "publish", "--stacktrace", "--build-cache", "--scan")
+        .withPluginClasspath()
         .build()
   }
 
@@ -32,12 +43,14 @@ internal class AndroidComponentsPluginTest {
         .withProjectDir(testLibDir)
         .forwardOutput()
         .withArguments("publish", "--stacktrace", "--build-cache", "--scan")
+        .withPluginClasspath()
         .build()
 
     GradleRunner.create()
         .withProjectDir(testAppDir)
         .forwardOutput()
         .withArguments("assemble", "--stacktrace", "--build-cache", "--scan")
+        .withPluginClasspath()
         .build()
   }
 }

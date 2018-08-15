@@ -5,6 +5,7 @@ plugins {
   `java-gradle-plugin`
   id("nebula.kotlin") version "1.2.60"
   `maven-publish`
+  `kotlin-dsl`
 }
 
 buildscript {
@@ -25,14 +26,12 @@ gradlePlugin {
 tasks.named<Test>("test") {
   useJUnitPlatform()
 
-  systemProperty("componentsPlugin", true)
   systemProperty("testLibDir", "${rootDir.absolutePath}/and-lib")
   systemProperty("testAppDir", "${rootDir.absolutePath}/and-app")
-  systemProperty("pluginVersion", version)
 
-  dependsOn(tasks.named("publishToMavenLocal"))
   inputs.files(
       "../and-lib/build.gradle.kts",
+      "../and-lib/build-flavors.gradle.kts",
       "../and-lib/settings.gradle.kts",
       "../and-app/build.gradle.kts",
       "../and-app/settings.gradle.kts")
@@ -43,7 +42,6 @@ tasks.named<Test>("test") {
 }
 
 dependencies {
-  compile(gradleKotlinDsl())
   compile("com.android.tools.build:gradle:3.3.0-alpha05")
 
   testCompile("org.junit.jupiter:junit-jupiter-api:5.2.0")

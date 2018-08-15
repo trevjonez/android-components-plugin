@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
+import org.gradle.api.logging.Logger
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin.*
 import org.gradle.api.provider.Provider
@@ -59,7 +60,7 @@ class AndroidComponentsPlugin
           project.provider { project.version.toString() }.memoize()
 
       val rootComponent = AndroidComponent(
-          defaultConfig, group, baseName, versionP,
+          project.logger, defaultConfig, group, baseName, versionP,
           DefaultDomainObjectSet(LibraryVariantComponent::class.java)
       )
 
@@ -198,7 +199,9 @@ class LibraryVariantComponent(
 }
 
 @Suppress("UNCHECKED_CAST")
-private fun AttributeContainer.addAll(attributes: AttributeContainer): AttributeContainer = apply {
+private fun AttributeContainer.addAll(
+    attributes: AttributeContainer
+): AttributeContainer = apply {
   attributes.keySet().forEach {
     it as Attribute<Any>
     attribute(it, attributes.getAttribute(it)!!)
@@ -206,6 +209,7 @@ private fun AttributeContainer.addAll(attributes: AttributeContainer): Attribute
 }
 
 class AndroidComponent<VC : AndroidVariantComponent>(
+    private val logger: Logger,
     private val defaultPublishConfig: Provider<String>,
     override val group: Provider<String>,
     override val baseName: Provider<String>,
@@ -216,7 +220,19 @@ class AndroidComponent<VC : AndroidVariantComponent>(
     get() = defaultVariant.variant
 
   private val defaultVariant by lazy {
-    variantComponents.single { it.name == defaultPublishConfig.get() }
+    val defaultName = defaultPublishConfig.get()
+    val default = variantComponents.singleOrNull { it.name == defaultName }
+    if (default != null) {
+      default
+    }
+    else {
+      val fallback = variantComponents.firstOrNull { it.variant.buildType.name == defaultName }
+      if (fallback == null) throw IllegalStateException("defaultPublishConfig: `$defaultName` not found.")
+      else {
+        logger.warn("defaultPublishConfig `$defaultName` not found. auto selecting ${fallback.name}")
+        fallback
+      }
+    }
   }
 
   override fun getName() = "android"

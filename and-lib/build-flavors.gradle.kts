@@ -1,4 +1,4 @@
- plugins {
+plugins {
   id("android-components")
   id("com.android.library")
   `maven-publish`
@@ -18,6 +18,15 @@ android {
     minSdkVersion(21)
     targetSdkVersion(28)
   }
+  flavorDimensions("color")
+  productFlavors {
+    create("red") {
+
+    }
+    create("blue") {
+
+    }
+  }
 }
 
 dependencies {
@@ -30,6 +39,11 @@ publishing {
     maven {
       name = "buildDir"
       url = uri("${buildDir.absolutePath}/.m2")
+    }
+  }
+  publications {
+    maybeCreate<MavenPublication>("android").apply {
+      artifactId = "and-lib-flavors"
     }
   }
 }

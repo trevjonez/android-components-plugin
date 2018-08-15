@@ -1,7 +1,7 @@
 plugins {
+  id("android-components")
   id("com.android.application")
   `maven-publish`
-//  id("android-components") version System.getProperty("pluginVersion", "1.0-SNAPSHOT")
 }
 
 group = "com.trevjonez"

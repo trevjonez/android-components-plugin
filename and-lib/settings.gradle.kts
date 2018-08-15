@@ -30,7 +30,7 @@ pluginManagement {
 }
 
 enableFeaturePreview("GRADLE_METADATA")
-//enableFeaturePreview("STABLE_PUBLISHING")
+enableFeaturePreview("STABLE_PUBLISHING")
 
 gradle.rootProject {
   apply<com.gradle.scan.plugin.BuildScanPlugin>()
