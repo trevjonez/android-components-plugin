@@ -72,6 +72,23 @@ internal class AndroidComponentsPluginTest {
   }
 
   @Test
+  internal fun `app can consume single flavor dimension variants lib via redirecting pom`() {
+    GradleRunner.create()
+        .withProjectDir(testLibDir)
+        .forwardOutput()
+        .withArguments("-b", "build-flavors.gradle.kts", "publish", "--stacktrace", "--build-cache", "--scan")
+        .withPluginClasspath()
+        .build()
+
+    GradleRunner.create()
+        .withProjectDir(testAppDir)
+        .forwardOutput()
+        .withArguments("assemble", "--stacktrace", "--build-cache", "--scan")
+        .withPluginClasspath()
+        .build()
+  }
+
+  @Test
   internal fun `app can consume single flavor dimension variants lib via module metadata`() {
     GradleRunner.create()
         .withProjectDir(testLibDir)
@@ -89,7 +106,7 @@ internal class AndroidComponentsPluginTest {
   }
 
   @Test
-  internal fun `single flavor dimension variants app can consume single flavor dimension variants lib via module metadata`() {
+  internal fun `app with single flavor dimension variants can consume single flavor dimension variants lib via module metadata`() {
     GradleRunner.create()
         .withProjectDir(testLibDir)
         .forwardOutput()
