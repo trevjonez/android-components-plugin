@@ -38,7 +38,7 @@ internal class AndroidComponentsPluginTest {
   }
 
   @Test
-  internal fun `app can consume lib via redirecting pom`() {
+  internal fun `app can consume lib via default pom`() {
     GradleRunner.create()
         .withProjectDir(testLibDir)
         .forwardOutput()

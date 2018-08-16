@@ -16,6 +16,10 @@ gradlePlugin {
   }
 }
 
+tasks.withType<KotlinCompile>().configureEach {
+  kotlinOptions.freeCompilerArgs = listOf("-Xjsr305=strict")
+}
+
 tasks.named("test").configure {
   this as Test
   useJUnitPlatform()
