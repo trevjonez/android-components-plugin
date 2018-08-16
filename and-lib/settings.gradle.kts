@@ -1,6 +1,6 @@
 rootProject.name = "and-lib"
 
-val AGP_VERSION = "3.3.0-alpha05"
+val AGP_VERSION = "3.1.4"
 
 buildscript {
   repositories {
