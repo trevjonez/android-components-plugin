@@ -5,13 +5,6 @@ plugins {
   `java-gradle-plugin`
   id("nebula.kotlin") version "1.2.60"
   `maven-publish`
-  `kotlin-dsl`
-}
-
-buildscript {
-  dependencies {
-    classpath("com.android.tools.build:gradle:3.3.0-alpha05")
-  }
 }
 
 gradlePlugin {
@@ -23,11 +16,13 @@ gradlePlugin {
   }
 }
 
-tasks.named<Test>("test") {
+tasks.named("test").configure {
+  this as Test
   useJUnitPlatform()
 
   systemProperty("testLibDir", "${rootDir.absolutePath}/and-lib")
   systemProperty("testAppDir", "${rootDir.absolutePath}/and-app")
+  systemProperty("org.gradle.testkit.debug", false)
 
   inputs.files(
       "../and-lib/build.gradle.kts",
@@ -42,7 +37,7 @@ tasks.named<Test>("test") {
 }
 
 dependencies {
-  compile("com.android.tools.build:gradle:3.3.0-alpha05")
+  compile("com.android.tools.build:gradle:3.1.3")
 
   testCompile("org.junit.jupiter:junit-jupiter-api:5.2.0")
   testRuntime("org.junit.jupiter:junit-jupiter-engine:5.2.0")

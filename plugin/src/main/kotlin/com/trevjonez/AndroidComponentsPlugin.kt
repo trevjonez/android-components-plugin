@@ -31,8 +31,6 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal
 import org.gradle.jvm.internal.resolve.LibraryPublishArtifact
-import org.gradle.kotlin.dsl.configure
-import org.gradle.kotlin.dsl.register
 import org.gradle.language.ComponentWithOutputs
 import javax.inject.Inject
 
@@ -48,16 +46,16 @@ class AndroidComponentsPlugin
       val libExtension = project.extensions.findByType(LibraryExtension::class.java)!!
 
       val defaultConfig =
-          project.provider { libExtension.defaultPublishConfig }.memoize()
+          project.provider { libExtension.defaultPublishConfig }
 
       val group: Provider<String> =
-          project.provider { project.group.toString() }.memoize()
+          project.provider { project.group.toString() }
 
       val baseName: Provider<String> =
-          project.provider { project.name }.memoize()
+          project.provider { project.name }
 
       val versionP: Provider<String> =
-          project.provider { project.version.toString() }.memoize()
+          project.provider { project.version.toString() }
 
       val rootComponent = AndroidComponent(
           project.logger, defaultConfig, group, baseName, versionP,
@@ -77,9 +75,9 @@ class AndroidComponentsPlugin
       }
 
       project.pluginManager.withPlugin("maven-publish") {
-        project.extensions.configure<PublishingExtension> {
-          publications.apply {
-            register<MavenPublication>("android") {
+        project.extensions.configure("publishing") { it: PublishingExtension ->
+          it.publications.apply {
+            maybeCreate("android", MavenPublication::class.java).apply {
               this as MavenPublicationInternal
               mavenProjectIdentity.artifactId.set(baseName)
               from(rootComponent)
@@ -87,7 +85,7 @@ class AndroidComponentsPlugin
             }
             rootComponent.variantComponents.all(object : Action<LibraryVariantComponent> {
               override fun execute(variantComponent: LibraryVariantComponent) {
-                register<MavenPublication>(variantComponent.name) {
+                maybeCreate(variantComponent.name, MavenPublication::class.java).apply {
                   this as MavenPublicationInternal
                   mavenProjectIdentity.apply {
                     groupId.set(project.provider {
@@ -162,7 +160,7 @@ class LibraryVariantComponent(
                       Usage.USAGE_ATTRIBUTE,
                       objects.named(Usage::class.java, Usage.JAVA_API))
                   .addAll(variant.compileConfiguration.attributes)
-            }.memoize(),
+            },
 
             providers.provider {
               variant.outputs
@@ -181,7 +179,7 @@ class LibraryVariantComponent(
                       Usage.USAGE_ATTRIBUTE,
                       objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
                   .addAll(variant.runtimeConfiguration.attributes)
-            }.memoize(),
+            },
 
             providers.provider {
               variant.outputs
@@ -219,21 +217,21 @@ class AndroidComponent<VC : AndroidVariantComponent>(
   override val variant: BaseVariant
     get() = defaultVariant.variant
 
-  private val defaultVariant by lazy {
-    val defaultName = defaultPublishConfig.get()
-    val default = variantComponents.singleOrNull { it.name == defaultName }
-    if (default != null) {
-      default
-    }
-    else {
-      val fallback = variantComponents.firstOrNull { it.variant.buildType.name == defaultName }
-      if (fallback == null) throw IllegalStateException("defaultPublishConfig: `$defaultName` not found.")
-      else {
-        logger.warn("defaultPublishConfig `$defaultName` not found. auto selecting ${fallback.name}")
-        fallback
+  private val defaultVariant: VC
+    get() {
+      val defaultName = defaultPublishConfig.get()
+      val default = variantComponents.singleOrNull { it.name == defaultName }
+      if (default != null) {
+        return default
+      } else {
+        val fallback = variantComponents.firstOrNull { it.variant.buildType.name == defaultName }
+        if (fallback == null) throw IllegalStateException("defaultPublishConfig: `$defaultName` not found.")
+        else {
+          logger.warn("defaultPublishConfig `$defaultName` not found. auto selecting ${fallback.name}")
+          return fallback
+        }
       }
     }
-  }
 
   override fun getName() = "android"
 
@@ -288,8 +286,3 @@ class AndroidVariantUsage(
 
 inline infix fun <reified T> Attribute<T>.from(container: AttributeContainer): T =
     T::class.java.cast(container.getAttribute(this))
-
-fun <T> Provider<T>.memoize(): Provider<T> {
-  val actual by lazy { get() }
-  return map { actual }
-}
