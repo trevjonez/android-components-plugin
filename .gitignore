@@ -1,6 +1,6 @@
 .gradle/
 build/
-.idea/
+.idea/*
 !.idea/codeStyles/
 !.idea/codeStyles/*
 
