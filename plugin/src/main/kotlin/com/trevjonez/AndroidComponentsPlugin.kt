@@ -22,12 +22,9 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
-import org.gradle.api.logging.Logger
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME
 import org.gradle.api.provider.Provider
-import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal
@@ -44,31 +41,27 @@ class AndroidComponentsPlugin
   override fun apply(project: Project) {
     //TODO only libraries for now. if all goes well we will cover the other types.
     project.pluginManager.withPlugin("com.android.library") { _ ->
-      val libExtension = project.extensions.findByType(LibraryExtension::class.java)!!
+      val libExtension =
+          project.extensions.findByType(LibraryExtension::class.java)!!
 
-      val defaultConfig =
-          project.provider { libExtension.defaultPublishConfig }
-
-      val groupProvider: Provider<String> =
-          project.provider { project.group.toString() }
-
-      val baseNameProvider: Provider<String> =
-          project.provider { project.name }
-
-      val versionProvide: Provider<String> =
+      val baseComponentProvider = BaseComponentProvider(
+          project.provider { libExtension.defaultPublishConfig },
+          project.provider { project.group.toString() },
+          project.provider { project.name },
           project.provider { project.version.toString() }
+      )
 
-      val rootComponent = AndroidComponent(
-          project, attributesFactory, defaultConfig,
-          groupProvider, baseNameProvider, versionProvide,
-          DefaultDomainObjectSet(LibraryVariantComponent::class.java))
+      val rootComponent: AndroidComponent<LibraryVariantComponent> =
+          AndroidComponent(
+              project, attributesFactory,
+              DefaultDomainObjectSet(LibraryVariantComponent::class.java),
+              baseComponentProvider
+          )
 
       libExtension.libraryVariants.all { variant ->
         project.components.add(rootComponent)
         val variantComponent = LibraryVariantComponent(
-            project.providers, project.objects,
-            attributesFactory, project.configurations,
-            variant, groupProvider, baseNameProvider, versionProvide
+            project, attributesFactory, variant, baseComponentProvider
         )
 
         project.components.add(variantComponent)
@@ -80,9 +73,8 @@ class AndroidComponentsPlugin
           publishing.publications.apply {
             maybeCreate("android", MavenPublication::class.java).apply {
               this as MavenPublicationInternal
-              mavenProjectIdentity.artifactId.set(baseNameProvider)
+              mavenProjectIdentity.artifactId.set(baseComponentProvider.baseNameProvider)
               from(rootComponent)
-              publishWithOriginalFileName()
             }
             rootComponent.variantComponents.all { variantComponent ->
               maybeCreate(variantComponent.name, MavenPublication::class.java).apply {
@@ -114,20 +106,14 @@ interface AndroidVariantComponent :
     PublishableComponent,
     SoftwareComponentInternal {
   val variant: BaseVariant
-  val group: Provider<String>
-  val baseName: Provider<String>
-  val version: Provider<String>
+  val baseComps: BaseComponentProvider
 }
 
 class LibraryVariantComponent(
-    private val providers: ProviderFactory,
-    private val objects: ObjectFactory,
+    private val project: Project,
     private val attributesFactory: ImmutableAttributesFactory,
-    private val configurationContainer: ConfigurationContainer,
     override val variant: LibraryVariant,
-    override val group: Provider<String>,
-    override val baseName: Provider<String>,
-    override val version: Provider<String>
+    override val baseComps: BaseComponentProvider
 ) : AndroidVariantComponent {
   override fun getName(): String =
       variant.name
@@ -136,53 +122,50 @@ class LibraryVariantComponent(
       variant.packageLibrary.outputs.files
 
   override fun getCoordinates(): ModuleVersionIdentifier {
-    return DefaultModuleVersionIdentifier.newId(
-        group.get(),
-        "${baseName.get()}_${variant.combinedNames}",
-        version.get()
-    )
+    return baseComps.moduleVersionIdentifier("_${variant.combinedNames}")
   }
 
   override fun getUsages(): Set<UsageContext> {
 
+    //TODO clean up this function
     val apiElements = "${variant.name}${API_ELEMENTS_CONFIGURATION_NAME.capitalize()}"
     val runtimeElements = "${variant.name}${RUNTIME_ELEMENTS_CONFIGURATION_NAME.capitalize()}"
     return setOf(
         AndroidVariantUsage(
-            variant.name,
-            "api",
-            configurationContainer.getByName(apiElements),
-
-            providers.provider {
+            variant.name, "api",
+            project.configurations.getByName(apiElements),
+            project.provider {
               attributesFactory.mutable()
                   .attribute(
                       Usage.USAGE_ATTRIBUTE,
-                      objects.named(Usage::class.java, Usage.JAVA_API))
+                      project.objects.named(Usage::class.java, Usage.JAVA_API))
                   .addAll(variant.compileConfiguration.attributes)
             },
-
-            providers.provider {
+            project.provider {
               variant.outputs
-                  .map { LibraryPublishArtifact(it.outputType, it.outputFile).builtBy(it.assemble) }
+                  .map {
+                    LibraryPublishArtifact(it.outputType, it.outputFile)
+                        .builtBy(it.assemble)
+                  }
                   .toSet()
             }
         ),
         AndroidVariantUsage(
-            variant.name,
-            "runtime",
-            configurationContainer.getByName(runtimeElements),
-
-            providers.provider {
+            variant.name, "runtime",
+            project.configurations.getByName(runtimeElements),
+            project.provider {
               attributesFactory.mutable()
                   .attribute(
                       Usage.USAGE_ATTRIBUTE,
-                      objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+                      project.objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
                   .addAll(variant.runtimeConfiguration.attributes)
             },
-
-            providers.provider {
+            project.provider {
               variant.outputs
-                  .map { LibraryPublishArtifact(it.outputType, it.outputFile).builtBy(it.assemble) }
+                  .map {
+                    LibraryPublishArtifact(it.outputType, it.outputFile)
+                        .builtBy(it.assemble)
+                  }
                   .toSet()
             }
         )
@@ -205,30 +188,46 @@ private fun AttributeContainer.addAll(
   }
 }
 
+class BaseComponentProvider(
+    val defaultConfigProvider: Provider<String>,
+    val groupProvider: Provider<String>,
+    val baseNameProvider: Provider<String>,
+    val versionProvider: Provider<String>
+) {
+  fun moduleVersionIdentifier(nameSuffix: String = ""): ModuleVersionIdentifier {
+    return DefaultModuleVersionIdentifier.newId(
+        groupProvider.get(),
+        baseNameProvider.get() + nameSuffix,
+        versionProvider.get())
+  }
+}
+
 class AndroidComponent<VC : AndroidVariantComponent>(
     private val project: Project,
     private val attributesFactory: ImmutableAttributesFactory,
-    private val defaultPublishConfig: Provider<String>,
-    override val group: Provider<String>,
-    override val baseName: Provider<String>,
-    override val version: Provider<String>,
-    val variantComponents: DomainObjectSet<VC>
+    val variantComponents: DomainObjectSet<VC>,
+    override val baseComps: BaseComponentProvider
 ) : ComponentWithVariants, AndroidVariantComponent {
   override val variant: BaseVariant
     get() = defaultVariant.variant
 
-  private val defaultVariant: VC
-    get() {
-      val defaultName = defaultPublishConfig.get()
-      val bestMatch = variantComponents.firstOrNull { it.name == defaultName }
-          ?: variantComponents.firstOrNull { it.variant.buildType.name == defaultName }
-          ?: throw IllegalStateException("defaultPublishConfig: `$defaultName` not found.")
-
-      if (bestMatch.name != defaultName)
-        project.logger.warn("defaultPublishConfig `$defaultName` not found. auto selecting ${bestMatch.name}")
-
-      return bestMatch
-    }
+  private val defaultVariant: VC by lazy {
+    val defaultName = baseComps.defaultConfigProvider.get()
+    variantComponents.firstOrNull { it.variant.name == defaultName }
+        ?: throw IllegalStateException(
+            """Specified default publish config `$defaultName` was not found.
+          |To correct this issue update your android DSL block with one of:
+          |${variantComponents.joinToString("\n", "\n", "\n\n") {
+              "  - \"${it.variant.name}\""
+            }}
+          |```
+          |android {
+          |  defaultPublishConfig = "${variantComponents.first().variant.name}"
+          |  [...]
+          |}
+          |```
+          |""".trimMargin())
+  }
 
   override fun getName() = "android"
 
@@ -253,9 +252,7 @@ class AndroidComponent<VC : AndroidVariantComponent>(
   override fun getOutputs(): FileCollection = project.files()
 
   override fun getCoordinates(): ModuleVersionIdentifier {
-    return DefaultModuleVersionIdentifier.newId(
-        group.get(), baseName.get(), version.get()
-    )
+    return baseComps.moduleVersionIdentifier()
   }
 }
 
@@ -303,6 +300,7 @@ class AndroidVariantUsage(
   override fun getArtifacts(): Set<PublishArtifact> =
       artifacts.get()
 
+  //TODO auto convert project into artifact?
   override fun getDependencies(): Set<ModuleDependency> =
       config.incoming.dependencies.withType(ModuleDependency::class.java)
 

@@ -18,6 +18,7 @@ android {
     minSdkVersion(21)
     targetSdkVersion(28)
   }
+  defaultPublishConfig("blueRelease")
   flavorDimensions("color")
   productFlavors {
     create("red") {
