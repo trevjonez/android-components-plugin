@@ -20,6 +20,7 @@ android {
   defaultConfig {
     minSdkVersion(21)
     targetSdkVersion(28)
+    missingDimensionStrategy("color", "blue")
   }
 }
 

@@ -1,6 +1,6 @@
 plugins {
   id("android-components")
-  id("com.android.library")
+  id("com.android.application")
   `maven-publish`
 }
 
@@ -10,6 +10,9 @@ version = "0.1.0"
 repositories {
   google()
   jcenter()
+  maven {
+    url = uri("../and-lib/build/.m2")
+  }
 }
 
 android {
@@ -30,8 +33,17 @@ android {
 }
 
 dependencies {
-  api("io.reactivex.rxjava2:rxjava:2.2.0")
-  implementation("com.squareup.moshi:moshi:1.6.0")
+  implementation("com.trevjonez:and-lib:0.1.0") {
+    isChanging = true
+  }
+}
+
+configurations {
+  "implementation" {
+    resolutionStrategy {
+      cacheChangingModulesFor(0, TimeUnit.SECONDS)
+    }
+  }
 }
 
 publishing {

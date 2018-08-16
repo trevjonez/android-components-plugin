@@ -38,7 +38,7 @@ internal class AndroidComponentsPluginTest {
   }
 
   @Test
-  internal fun `app can consume lib`() {
+  internal fun `app can consume lib via redirecting pom`() {
     GradleRunner.create()
         .withProjectDir(testLibDir)
         .forwardOutput()
@@ -50,6 +50,57 @@ internal class AndroidComponentsPluginTest {
         .withProjectDir(testAppDir)
         .forwardOutput()
         .withArguments("assemble", "--stacktrace", "--build-cache", "--scan")
+        .withPluginClasspath()
+        .build()
+  }
+
+  @Test
+  internal fun `app can consume lib via module metadata`() {
+    GradleRunner.create()
+        .withProjectDir(testLibDir)
+        .forwardOutput()
+        .withArguments("publish", "--stacktrace", "--build-cache", "--scan")
+        .withPluginClasspath()
+        .build()
+
+    GradleRunner.create()
+        .withProjectDir(testAppDir)
+        .forwardOutput()
+        .withArguments("-c", "settings-metadata.gradle.kts", "assemble", "--stacktrace", "--build-cache", "--scan")
+        .withPluginClasspath()
+        .build()
+  }
+
+  @Test
+  internal fun `app can consume single flavor dimension variants lib via module metadata`() {
+    GradleRunner.create()
+        .withProjectDir(testLibDir)
+        .forwardOutput()
+        .withArguments("-b", "build-flavors.gradle.kts", "publish", "--stacktrace", "--build-cache", "--scan")
+        .withPluginClasspath()
+        .build()
+
+    GradleRunner.create()
+        .withProjectDir(testAppDir)
+        .forwardOutput()
+        .withArguments("-c", "settings-metadata.gradle.kts", "assemble", "--stacktrace", "--build-cache", "--scan")
+        .withPluginClasspath()
+        .build()
+  }
+
+  @Test
+  internal fun `single flavor dimension variants app can consume single flavor dimension variants lib via module metadata`() {
+    GradleRunner.create()
+        .withProjectDir(testLibDir)
+        .forwardOutput()
+        .withArguments("-b", "build-flavors.gradle.kts", "publish", "--stacktrace", "--build-cache", "--scan")
+        .withPluginClasspath()
+        .build()
+
+    GradleRunner.create()
+        .withProjectDir(testAppDir)
+        .forwardOutput()
+        .withArguments("-b", "build-flavors.gradle.kts", "-c", "settings-metadata.gradle.kts", "assemble", "--stacktrace", "--build-cache", "--scan")
         .withPluginClasspath()
         .build()
   }

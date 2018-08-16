@@ -3,7 +3,6 @@ package com.trevjonez
 import com.android.build.gradle.LibraryExtension
 import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.api.LibraryVariant
-import org.gradle.api.Action
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -19,12 +18,14 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.configurations.Configurations
+import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.logging.Logger
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.plugins.JavaPlugin.*
+import org.gradle.api.plugins.JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME
+import org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.publish.PublishingExtension
@@ -48,26 +49,26 @@ class AndroidComponentsPlugin
       val defaultConfig =
           project.provider { libExtension.defaultPublishConfig }
 
-      val group: Provider<String> =
+      val groupProvider: Provider<String> =
           project.provider { project.group.toString() }
 
-      val baseName: Provider<String> =
+      val baseNameProvider: Provider<String> =
           project.provider { project.name }
 
-      val versionP: Provider<String> =
+      val versionProvide: Provider<String> =
           project.provider { project.version.toString() }
 
       val rootComponent = AndroidComponent(
-          project.logger, defaultConfig, group, baseName, versionP,
-          DefaultDomainObjectSet(LibraryVariantComponent::class.java)
-      )
+          project, attributesFactory, defaultConfig,
+          groupProvider, baseNameProvider, versionProvide,
+          DefaultDomainObjectSet(LibraryVariantComponent::class.java))
 
       libExtension.libraryVariants.all { variant ->
         project.components.add(rootComponent)
         val variantComponent = LibraryVariantComponent(
             project.providers, project.objects,
             attributesFactory, project.configurations,
-            variant, group, baseName, versionP
+            variant, groupProvider, baseNameProvider, versionProvide
         )
 
         project.components.add(variantComponent)
@@ -79,30 +80,28 @@ class AndroidComponentsPlugin
           publishing.publications.apply {
             maybeCreate("android", MavenPublication::class.java).apply {
               this as MavenPublicationInternal
-              mavenProjectIdentity.artifactId.set(baseName)
+              mavenProjectIdentity.artifactId.set(baseNameProvider)
               from(rootComponent)
               publishWithOriginalFileName()
             }
-            rootComponent.variantComponents.all(object : Action<LibraryVariantComponent> {
-              override fun execute(variantComponent: LibraryVariantComponent) {
-                maybeCreate(variantComponent.name, MavenPublication::class.java).apply {
-                  this as MavenPublicationInternal
-                  mavenProjectIdentity.apply {
-                    groupId.set(project.provider {
-                      variantComponent.coordinates.group
-                    })
-                    artifactId.set(project.provider {
-                      variantComponent.coordinates.name
-                    })
-                    version.set(project.provider {
-                      variantComponent.coordinates.version
-                    })
-                  }
-                  from(variantComponent)
-                  publishWithOriginalFileName()
+            rootComponent.variantComponents.all { variantComponent ->
+              maybeCreate(variantComponent.name, MavenPublication::class.java).apply {
+                this as MavenPublicationInternal
+                mavenProjectIdentity.apply {
+                  groupId.set(project.provider {
+                    variantComponent.coordinates.group
+                  })
+                  artifactId.set(project.provider {
+                    variantComponent.coordinates.name
+                  })
+                  version.set(project.provider {
+                    variantComponent.coordinates.version
+                  })
                 }
+                from(variantComponent)
+                publishWithOriginalFileName()
               }
-            })
+            }
           }
         }
       }
@@ -207,7 +206,8 @@ private fun AttributeContainer.addAll(
 }
 
 class AndroidComponent<VC : AndroidVariantComponent>(
-    private val logger: Logger,
+    private val project: Project,
+    private val attributesFactory: ImmutableAttributesFactory,
     private val defaultPublishConfig: Provider<String>,
     override val group: Provider<String>,
     override val baseName: Provider<String>,
@@ -220,17 +220,14 @@ class AndroidComponent<VC : AndroidVariantComponent>(
   private val defaultVariant: VC
     get() {
       val defaultName = defaultPublishConfig.get()
-      val default = variantComponents.singleOrNull { it.name == defaultName }
-      if (default != null) {
-        return default
-      } else {
-        val fallback = variantComponents.firstOrNull { it.variant.buildType.name == defaultName }
-        if (fallback == null) throw IllegalStateException("defaultPublishConfig: `$defaultName` not found.")
-        else {
-          logger.warn("defaultPublishConfig `$defaultName` not found. auto selecting ${fallback.name}")
-          return fallback
-        }
-      }
+      val bestMatch = variantComponents.firstOrNull { it.name == defaultName }
+          ?: variantComponents.firstOrNull { it.variant.buildType.name == defaultName }
+          ?: throw IllegalStateException("defaultPublishConfig: `$defaultName` not found.")
+
+      if (bestMatch.name != defaultName)
+        project.logger.warn("defaultPublishConfig `$defaultName` not found. auto selecting ${bestMatch.name}")
+
+      return bestMatch
     }
 
   override fun getName() = "android"
@@ -239,16 +236,57 @@ class AndroidComponent<VC : AndroidVariantComponent>(
       variantComponents
 
   override fun getUsages(): Set<UsageContext> =
-      defaultVariant.usages
+      setOf(DefaultVariantForwardingUsage(
+          DefaultClientModule(
+              defaultVariant.coordinates.group,
+              defaultVariant.coordinates.name,
+              defaultVariant.coordinates.version
+          ),
+          project.provider {
+            attributesFactory.of(
+                Usage.USAGE_ATTRIBUTE,
+                project.objects.named(Usage::class.java, Usage.JAVA_API)
+            )
+          }
+      ))
 
-  override fun getOutputs(): FileCollection =
-      defaultVariant.outputs
+  override fun getOutputs(): FileCollection = project.files()
 
   override fun getCoordinates(): ModuleVersionIdentifier {
     return DefaultModuleVersionIdentifier.newId(
         group.get(), baseName.get(), version.get()
     )
   }
+}
+
+class DefaultVariantForwardingUsage(
+    private val redirectDependency: ModuleDependency,
+    private val attributes: Provider<AttributeContainer>
+) : UsageContext {
+  override fun getUsage(): Usage =
+      Usage.USAGE_ATTRIBUTE from attributes.get()
+
+  override fun getName(): String {
+    return "legacy-support-redirect"
+  }
+
+  override fun getCapabilities(): Set<Capability> =
+      emptySet()
+
+  override fun getDependencies(): Set<ModuleDependency> =
+      setOf(redirectDependency)
+
+  override fun getDependencyConstraints(): Set<DependencyConstraint> =
+      emptySet()
+
+  override fun getGlobalExcludes(): Set<ExcludeRule> =
+      emptySet()
+
+  override fun getArtifacts(): Set<PublishArtifact> =
+      emptySet()
+
+  override fun getAttributes(): AttributeContainer =
+      attributes.get()
 }
 
 class AndroidVariantUsage(

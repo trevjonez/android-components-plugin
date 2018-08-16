@@ -29,6 +29,7 @@ pluginManagement {
   }
 }
 
+enableFeaturePreview("GRADLE_METADATA")
 enableFeaturePreview("STABLE_PUBLISHING")
 
 gradle.rootProject {
