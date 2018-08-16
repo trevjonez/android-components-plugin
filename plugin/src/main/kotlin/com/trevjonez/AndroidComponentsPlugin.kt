@@ -42,7 +42,7 @@ class AndroidComponentsPlugin
 
   override fun apply(project: Project) {
     //TODO only libraries for now. if all goes well we will cover the other types.
-    project.pluginManager.withPlugin("com.android.library") {
+    project.pluginManager.withPlugin("com.android.library") { _ ->
       val libExtension = project.extensions.findByType(LibraryExtension::class.java)!!
 
       val defaultConfig =
@@ -74,9 +74,9 @@ class AndroidComponentsPlugin
         rootComponent.variantComponents.add(variantComponent)
       }
 
-      project.pluginManager.withPlugin("maven-publish") {
-        project.extensions.configure("publishing") { it: PublishingExtension ->
-          it.publications.apply {
+      project.pluginManager.withPlugin("maven-publish") { _ ->
+        project.extensions.configure("publishing") { publishing: PublishingExtension ->
+          publishing.publications.apply {
             maybeCreate("android", MavenPublication::class.java).apply {
               this as MavenPublicationInternal
               mavenProjectIdentity.artifactId.set(baseName)
