@@ -37,7 +37,7 @@ tasks.named("test").configure {
 }
 
 dependencies {
-  compile("com.android.tools.build:gradle:3.1.3")
+  compile("com.android.tools.build:gradle:settings.gradle.kts")
 
   testCompile("org.junit.jupiter:junit-jupiter-api:5.2.0")
   testRuntime("org.junit.jupiter:junit-jupiter-engine:5.2.0")
