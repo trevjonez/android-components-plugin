@@ -16,16 +16,9 @@
 
 package com.trevjonez
 
-import com.android.build.gradle.LibraryExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.attributes.Attribute
-import org.gradle.api.attributes.AttributeContainer
-import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
-import org.gradle.api.publish.PublishingExtension
-import org.gradle.api.publish.maven.MavenPublication
-import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal
 import javax.inject.Inject
 
 @Suppress("unused")
@@ -35,64 +28,14 @@ class AndroidComponentsPlugin
 ) : Plugin<Project> {
 
   override fun apply(project: Project) {
-    //TODO only libraries for now. if all goes well we will cover the other types.
     project.pluginManager.withPlugin("com.android.library") { _ ->
-      val libExtension =
-          project.extensions.findByType(LibraryExtension::class.java)!!
-
-      val baseComponentProvider = BaseComponentProvider(
-          project.provider { libExtension.defaultPublishConfig },
-          project.provider { project.group.toString() },
-          project.provider { project.name },
-          project.provider { project.version.toString() }
-      )
-
-      val rootComponent: AndroidComponent<LibraryVariantComponent> =
-          AndroidComponent(
-              project, attributesFactory,
-              DefaultDomainObjectSet(LibraryVariantComponent::class.java),
-              baseComponentProvider
-          )
-
-      libExtension.libraryVariants.all { variant ->
-        project.components.add(rootComponent)
-        val variantComponent = LibraryVariantComponent(
-            project, attributesFactory, variant, baseComponentProvider
-        )
-
-        project.components.add(variantComponent)
-        rootComponent.variantComponents.add(variantComponent)
-      }
-
-      project.pluginManager.withPlugin("maven-publish") { _ ->
-        project.extensions.configure("publishing") { publishing: PublishingExtension ->
-          publishing.publications.apply {
-            maybeCreate("android", MavenPublication::class.java).apply {
-              this as MavenPublicationInternal
-              mavenProjectIdentity.artifactId.set(baseComponentProvider.baseNameProvider)
-              from(rootComponent)
-            }
-            rootComponent.variantComponents.all { variantComponent ->
-              maybeCreate(variantComponent.name, MavenPublication::class.java).apply {
-                this as MavenPublicationInternal
-                mavenProjectIdentity.apply {
-                  groupId.set(project.provider {
-                    variantComponent.coordinates.group
-                  })
-                  artifactId.set(project.provider {
-                    variantComponent.coordinates.name
-                  })
-                  version.set(project.provider {
-                    variantComponent.coordinates.version
-                  })
-                }
-                from(variantComponent)
-                publishWithOriginalFileName()
-              }
-            }
-          }
-        }
-      }
+      project.pluginManager.apply(AndroidLibraryComponentsPlugin::class.java)
+    }
+    project.pluginManager.withPlugin("com.android.application") { _ ->
+      TODO()
+    }
+    project.pluginManager.withPlugin("com.android.test") { _ ->
+      TODO()
     }
   }
 }
