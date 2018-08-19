@@ -121,6 +121,23 @@ internal class AndroidComponentsPluginTest {
         .withPluginClasspath()
         .build()
   }
+
+  @Test
+  internal fun `app with multi flavor dimension variants can consume multi flavor dimension variants lib via module metadata`() {
+    GradleRunner.create()
+        .withProjectDir(testLibDir)
+        .forwardOutput()
+        .withArguments("-b", "build-flavors-many.gradle.kts", "publish", "--stacktrace", "--build-cache", "--scan")
+        .withPluginClasspath()
+        .build()
+
+    GradleRunner.create()
+        .withProjectDir(testAppDir)
+        .forwardOutput()
+        .withArguments("-b", "build-flavors-many.gradle.kts", "-c", "settings-metadata.gradle.kts", "assemble", "--stacktrace", "--build-cache", "--scan")
+        .withPluginClasspath()
+        .build()
+  }
 }
 
 inline fun <R, T : Any> systemProperty(
