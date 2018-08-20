@@ -19,15 +19,13 @@ package com.trevjonez
 import com.android.build.gradle.LibraryExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal
-import java.lang.NullPointerException
 import javax.inject.Inject
+import kotlin.NullPointerException
 
-@Suppress("unused")
 class AndroidLibraryComponentsPlugin
 @Inject constructor(
     private val attributesFactory: ImmutableAttributesFactory
@@ -38,36 +36,49 @@ class AndroidLibraryComponentsPlugin
         project.extensions.findByType(LibraryExtension::class.java)
             ?: throw NullPointerException("Do not apply ${javaClass.simpleName} directly. Use \"android-components\"")
 
-    val baseComponentProvider = BaseComponentProvider(
-        project.provider { libExtension.defaultPublishConfig },
-        project.provider { project.group.toString() },
-        project.provider { project.name },
-        project.provider { project.version.toString() }
-    )
+    val componentsExtension =
+        project.extensions.findByType(AndroidComponentsExtension::class.java)
+            ?: throw NullPointerException("Do not apply ${javaClass.simpleName} directly. Use \"android-components\"")
 
-    val rootComponent: AndroidComponent<LibraryVariantComponent> =
-        AndroidComponent(
-            project, attributesFactory,
-            DefaultDomainObjectSet(LibraryVariantComponent::class.java),
-            baseComponentProvider
-        )
+    val baseComponentProvider = BaseComponentProvider(
+        project,
+        attributesFactory,
+        componentsExtension,
+        project.provider {
+          libExtension.defaultPublishConfig
+        })
+
+    val rootComponent = baseComponentProvider.rootComponent<LibraryVariantComponent>()
+
+    project.components.add(rootComponent)
 
     libExtension.libraryVariants.all { variant ->
-      project.components.add(rootComponent)
-      val variantComponent = LibraryVariantComponent(
-          project, attributesFactory, variant, baseComponentProvider
-      )
-
+      val variantComponent = baseComponentProvider.libVariantComponent(variant)
       project.components.add(variantComponent)
       rootComponent.variantComponents.add(variantComponent)
     }
 
+    registerComponentsWithMavenPublishPlugin(
+        project, baseComponentProvider, rootComponent
+    )
+  }
+
+  private fun registerComponentsWithMavenPublishPlugin(
+      project: Project,
+      baseComponentProvider: BaseComponentProvider,
+      rootComponent: AndroidComponent<LibraryVariantComponent>
+  ) {
     project.pluginManager.withPlugin("maven-publish") { _ ->
       project.extensions.configure("publishing") { publishing: PublishingExtension ->
         publishing.publications.apply {
+          val androidExists = findByName("android") != null
           maybeCreate("android", MavenPublication::class.java).apply {
             this as MavenPublicationInternal
-            mavenProjectIdentity.artifactId.set(baseComponentProvider.baseNameProvider)
+            if (!androidExists) {
+              mavenProjectIdentity.artifactId.set(
+                  baseComponentProvider.baseNameProvider
+              )
+            }
             from(rootComponent)
           }
           rootComponent.variantComponents.all { variantComponent ->

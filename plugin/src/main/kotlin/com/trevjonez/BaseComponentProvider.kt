@@ -16,20 +16,51 @@
 
 package com.trevjonez
 
+import com.android.build.gradle.api.LibraryVariant
+import org.gradle.api.Project
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.attributes.Usage
+import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.provider.Provider
 
 class BaseComponentProvider(
+    val project: Project,
+
+    val attributesFactory: ImmutableAttributesFactory,
+
+    val componentsExtension: AndroidComponentsExtension,
+
     val defaultConfigProvider: Provider<String>,
-    val groupProvider: Provider<String>,
-    val baseNameProvider: Provider<String>,
-    val versionProvider: Provider<String>
+
+    val groupProvider: Provider<String> =
+        project.provider { project.group.toString() },
+
+    val baseNameProvider: Provider<String> =
+        project.provider { componentsExtension.artifactId ?: project.name },
+
+    val versionProvider: Provider<String> =
+        project.provider { project.version.toString() }
 ) {
+
+  inline fun <T> provider(crossinline block: (project: Project) -> T) =
+      project.provider { block(project) }
+
+  fun configuration(configName: String) =
+      project.configurations.getByName(configName)
+
+  fun usage(name: String) = project.objects.named(Usage::class.java, name)
+
   fun moduleVersionIdentifier(nameSuffix: String = ""): ModuleVersionIdentifier {
     return DefaultModuleVersionIdentifier.newId(
         groupProvider.get(),
         baseNameProvider.get() + nameSuffix,
         versionProvider.get())
   }
+
+  inline fun <reified T : AndroidVariantComponent> rootComponent() =
+      AndroidComponent<T>(DefaultDomainObjectSet(T::class.java), this)
+
+  fun libVariantComponent(variant: LibraryVariant) = LibraryVariantComponent(variant, this)
 }

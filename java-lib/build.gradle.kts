@@ -19,7 +19,7 @@ publishing {
     }
   }
   publications {
-    register<MavenPublication>("jar") {
+    create("jar", MavenPublication::class.java) {
       from(components.getByName("java"))
     }
   }

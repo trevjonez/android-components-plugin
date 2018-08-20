@@ -29,8 +29,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.component.UsageContext
 
 class AndroidComponent<VC : AndroidVariantComponent>(
-    private val project: Project,
-    private val attributesFactory: ImmutableAttributesFactory,
     val variantComponents: DomainObjectSet<VC>,
     override val baseComps: BaseComponentProvider
 ) : ComponentWithVariants, AndroidVariantComponent {
@@ -67,15 +65,15 @@ class AndroidComponent<VC : AndroidVariantComponent>(
               defaultVariant.coordinates.name,
               defaultVariant.coordinates.version
           ),
-          project.provider {
-            attributesFactory.of(
+          baseComps.project.provider {
+            baseComps.attributesFactory.of(
                 Usage.USAGE_ATTRIBUTE,
-                project.objects.named(Usage::class.java, Usage.JAVA_API)
+                baseComps.project.objects.named(Usage::class.java, Usage.JAVA_API)
             )
           }
       ))
 
-  override fun getOutputs(): FileCollection = project.files()
+  override fun getOutputs(): FileCollection = baseComps.project.files()
 
   override fun getCoordinates(): ModuleVersionIdentifier {
     return baseComps.moduleVersionIdentifier()

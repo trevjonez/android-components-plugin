@@ -16,7 +16,10 @@
 
 package com.trevjonez
 
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.SoftAssertions
 import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.io.File
@@ -35,22 +38,97 @@ internal class AndroidComponentsPluginTest {
 
   @Test
   internal fun `lib can publish build type variants as expected`() {
-    GradleRunner.create()
+    val buildResult = GradleRunner.create()
         .withProjectDir(testLibDir)
         .forwardOutput()
         .withArguments("publish", "--stacktrace", "--build-cache", "--scan")
         .withPluginClasspath()
         .build()
+
+    assertThat(buildResult.task(":publish")!!.outcome)
+        .isEqualTo(TaskOutcome.SUCCESS)
+
+    assertThat(File(testLibDir, "build/.m2/com/trevjonez/")).satisfies { m2Root ->
+      SoftAssertions().also { softly ->
+        softly.assertThat(File(m2Root, "and-lib/0.1.0/and-lib-0.1.0.module")).exists()
+        softly.assertThat(File(m2Root, "and-lib/0.1.0/and-lib-0.1.0.pom")).exists()
+        softly.assertThat(File(m2Root, "and-lib/0.1.0/and-lib-0.1.0.aar")).doesNotExist()
+
+        softly.assertThat(File(m2Root, "and-lib_debug/0.1.0/and-lib_debug-0.1.0.module")).exists()
+        softly.assertThat(File(m2Root, "and-lib_debug/0.1.0/and-lib_debug-0.1.0.pom")).exists()
+        softly.assertThat(File(m2Root, "and-lib_debug/0.1.0/and-lib_debug-0.1.0.aar")).exists()
+
+        softly.assertThat(File(m2Root, "and-lib_release/0.1.0/and-lib_release-0.1.0.module")).exists()
+        softly.assertThat(File(m2Root, "and-lib_release/0.1.0/and-lib_release-0.1.0.pom")).exists()
+        softly.assertThat(File(m2Root, "and-lib_release/0.1.0/and-lib_release-0.1.0.aar")).exists()
+      }.assertAll()
+    }
+  }
+
+  @Test
+  internal fun `lib can specify artifact id and not be overwritten`() {
+    val buildResult = GradleRunner.create()
+        .withProjectDir(testLibDir)
+        .forwardOutput()
+        .withArguments("-b", "build-id-spec.gradle.kts", "publish", "--stacktrace", "--build-cache", "--scan")
+        .withPluginClasspath()
+        .build()
+
+    assertThat(buildResult.task(":publish")!!.outcome)
+        .isEqualTo(TaskOutcome.SUCCESS)
+
+    assertThat(File(testLibDir, "build/.m2/com/trevjonez")).satisfies { m2Root ->
+      SoftAssertions().also { softly ->
+        softly.assertThat(File(m2Root, "artId/0.1.0/artId-0.1.0.module")).exists()
+        softly.assertThat(File(m2Root, "artId/0.1.0/artId-0.1.0.pom")).exists()
+        softly.assertThat(File(m2Root, "artId/0.1.0/artId-0.1.0.aar")).doesNotExist()
+
+        softly.assertThat(File(m2Root, "artId_debug/0.1.0/artId_debug-0.1.0.module")).exists()
+        softly.assertThat(File(m2Root, "artId_debug/0.1.0/artId_debug-0.1.0.pom")).exists()
+        softly.assertThat(File(m2Root, "artId_debug/0.1.0/artId_debug-0.1.0.aar")).exists()
+
+        softly.assertThat(File(m2Root, "artId_release/0.1.0/artId_release-0.1.0.module")).exists()
+        softly.assertThat(File(m2Root, "artId_release/0.1.0/artId_release-0.1.0.pom")).exists()
+        softly.assertThat(File(m2Root, "artId_release/0.1.0/artId_release-0.1.0.aar")).exists()
+      }.assertAll()
+    }
   }
 
   @Test
   internal fun `lib can publish build type and single flavor dimension variants as expected`() {
-    GradleRunner.create()
+    val buildResult = GradleRunner.create()
         .withProjectDir(testLibDir)
         .forwardOutput()
         .withArguments("-b", "build-flavors.gradle.kts", "publish", "--stacktrace", "--build-cache", "--scan")
         .withPluginClasspath()
         .build()
+
+    assertThat(buildResult.task(":publish")!!.outcome)
+        .isEqualTo(TaskOutcome.SUCCESS)
+
+    assertThat(File(testLibDir, "build/.m2/com/trevjonez/")).satisfies { m2Root ->
+      SoftAssertions().also { softly ->
+        softly.assertThat(File(m2Root, "and-lib/0.1.0/and-lib-0.1.0.module")).exists()
+        softly.assertThat(File(m2Root, "and-lib/0.1.0/and-lib-0.1.0.pom")).exists()
+        softly.assertThat(File(m2Root, "and-lib/0.1.0/and-lib-0.1.0.aar")).doesNotExist()
+
+        softly.assertThat(File(m2Root, "and-lib_red_debug/0.1.0/and-lib_red_debug-0.1.0.module")).exists()
+        softly.assertThat(File(m2Root, "and-lib_red_debug/0.1.0/and-lib_red_debug-0.1.0.pom")).exists()
+        softly.assertThat(File(m2Root, "and-lib_red_debug/0.1.0/and-lib_red_debug-0.1.0.aar")).exists()
+
+        softly.assertThat(File(m2Root, "and-lib_blue_debug/0.1.0/and-lib_blue_debug-0.1.0.module")).exists()
+        softly.assertThat(File(m2Root, "and-lib_blue_debug/0.1.0/and-lib_blue_debug-0.1.0.pom")).exists()
+        softly.assertThat(File(m2Root, "and-lib_blue_debug/0.1.0/and-lib_blue_debug-0.1.0.aar")).exists()
+
+        softly.assertThat(File(m2Root, "and-lib_red_release/0.1.0/and-lib_red_release-0.1.0.module")).exists()
+        softly.assertThat(File(m2Root, "and-lib_red_release/0.1.0/and-lib_red_release-0.1.0.pom")).exists()
+        softly.assertThat(File(m2Root, "and-lib_red_release/0.1.0/and-lib_red_release-0.1.0.aar")).exists()
+
+        softly.assertThat(File(m2Root, "and-lib_blue_release/0.1.0/and-lib_blue_release-0.1.0.module")).exists()
+        softly.assertThat(File(m2Root, "and-lib_blue_release/0.1.0/and-lib_blue_release-0.1.0.pom")).exists()
+        softly.assertThat(File(m2Root, "and-lib_blue_release/0.1.0/and-lib_blue_release-0.1.0.aar")).exists()
+      }.assertAll()
+    }
   }
 
   @Test
@@ -62,12 +140,52 @@ internal class AndroidComponentsPluginTest {
         .withPluginClasspath()
         .build()
 
-    GradleRunner.create()
+    val buildResult = GradleRunner.create()
         .withProjectDir(testAppDir)
         .forwardOutput()
-        .withArguments("assemble", "--stacktrace", "--build-cache", "--scan")
+        .withGradleVersion("4.10-rc-2")
+        .withArguments("dependencies", "assemble", "--stacktrace", "--build-cache", "--scan")
         .withPluginClasspath()
         .build()
+
+    assertThat(buildResult.task(":assemble")!!.outcome)
+        .isEqualTo(TaskOutcome.SUCCESS)
+
+    assertThat(buildResult.output).contains("""
+        |debugCompileClasspath - Resolved configuration for compilation for variant: debug
+        |\--- com.trevjonez:and-lib:0.1.0
+        |     \--- com.trevjonez:and-lib_release:0.1.0
+        |          \--- io.reactivex.rxjava2:rxjava:2.2.0
+        |               \--- org.reactivestreams:reactive-streams:1.0.2
+    """.trimMargin())
+
+    assertThat(buildResult.output).contains("""
+        |debugRuntimeClasspath - Resolved configuration for runtime for variant: debug
+        |\--- com.trevjonez:and-lib:0.1.0
+        |     \--- com.trevjonez:and-lib_release:0.1.0
+        |          +--- io.reactivex.rxjava2:rxjava:2.2.0
+        |          |    \--- org.reactivestreams:reactive-streams:1.0.2
+        |          \--- com.squareup.moshi:moshi:1.6.0
+        |               \--- com.squareup.okio:okio:1.14.0
+    """.trimMargin())
+
+    assertThat(buildResult.output).contains("""
+        |releaseCompileClasspath - Resolved configuration for compilation for variant: release
+        |\--- com.trevjonez:and-lib:0.1.0
+        |     \--- com.trevjonez:and-lib_release:0.1.0
+        |          \--- io.reactivex.rxjava2:rxjava:2.2.0
+        |               \--- org.reactivestreams:reactive-streams:1.0.2
+    """.trimMargin())
+
+    assertThat(buildResult.output).contains("""
+        |releaseRuntimeClasspath - Resolved configuration for runtime for variant: release
+        |\--- com.trevjonez:and-lib:0.1.0
+        |     \--- com.trevjonez:and-lib_release:0.1.0
+        |          +--- io.reactivex.rxjava2:rxjava:2.2.0
+        |          |    \--- org.reactivestreams:reactive-streams:1.0.2
+        |          \--- com.squareup.moshi:moshi:1.6.0
+        |               \--- com.squareup.okio:okio:1.14.0
+    """.trimMargin())
   }
 
   @Test
@@ -79,12 +197,56 @@ internal class AndroidComponentsPluginTest {
         .withPluginClasspath()
         .build()
 
-    GradleRunner.create()
+    val buildResult = GradleRunner.create()
         .withProjectDir(testAppDir)
         .forwardOutput()
-        .withArguments("-c", "settings-metadata.gradle.kts", "assemble", "--stacktrace", "--build-cache", "--scan")
+        .withArguments("-c", "settings-metadata.gradle.kts", "dependencies", "assemble", "--stacktrace", "--build-cache", "--scan")
         .withPluginClasspath()
         .build()
+
+    assertThat(buildResult.task(":assemble")!!.outcome)
+        .isEqualTo(TaskOutcome.SUCCESS)
+
+    assertThat(buildResult.output).contains("""
+        |debugCompileClasspath - Resolved configuration for compilation for variant: debug
+        |\--- com.trevjonez:and-lib:0.1.0
+        |     \--- com.trevjonez:and-lib_debug:0.1.0
+        |          \--- io.reactivex.rxjava2:rxjava:2.2.0
+        |               \--- org.reactivestreams:reactive-streams:1.0.2
+    """.trimMargin())
+
+    assertThat(buildResult.output).contains("""
+        |debugRuntimeClasspath - Resolved configuration for runtime for variant: debug
+        |\--- com.trevjonez:and-lib:0.1.0
+        |     \--- com.trevjonez:and-lib_debug:0.1.0
+        |          +--- com.squareup.moshi:moshi:1.6.0
+        |          |    \--- com.squareup.okio:okio:1.14.0
+        |          \--- io.reactivex.rxjava2:rxjava:2.2.0
+        |               \--- org.reactivestreams:reactive-streams:1.0.2
+    """.trimMargin())
+
+    assertThat(buildResult.output).contains("""
+        |implementation - Implementation only dependencies for 'main' sources. (n)
+        |\--- com.trevjonez:and-lib:0.1.0 (n)
+    """.trimMargin())
+
+    assertThat(buildResult.output).contains("""
+        |releaseCompileClasspath - Resolved configuration for compilation for variant: release
+        |\--- com.trevjonez:and-lib:0.1.0
+        |     \--- com.trevjonez:and-lib_release:0.1.0
+        |          \--- io.reactivex.rxjava2:rxjava:2.2.0
+        |               \--- org.reactivestreams:reactive-streams:1.0.2
+    """.trimMargin())
+
+    assertThat(buildResult.output).contains("""
+        |releaseRuntimeClasspath - Resolved configuration for runtime for variant: release
+        |\--- com.trevjonez:and-lib:0.1.0
+        |     \--- com.trevjonez:and-lib_release:0.1.0
+        |          +--- com.squareup.moshi:moshi:1.6.0
+        |          |    \--- com.squareup.okio:okio:1.14.0
+        |          \--- io.reactivex.rxjava2:rxjava:2.2.0
+        |               \--- org.reactivestreams:reactive-streams:1.0.2
+    """.trimMargin())
   }
 
   @Test

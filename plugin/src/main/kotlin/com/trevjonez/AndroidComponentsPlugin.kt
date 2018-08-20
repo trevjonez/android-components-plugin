@@ -29,13 +29,26 @@ class AndroidComponentsPlugin
 
   override fun apply(project: Project) {
     project.pluginManager.withPlugin("com.android.library") { _ ->
+      addExtension(project)
       project.pluginManager.apply(AndroidLibraryComponentsPlugin::class.java)
     }
     project.pluginManager.withPlugin("com.android.application") { _ ->
+      addExtension(project)
       TODO()
     }
     project.pluginManager.withPlugin("com.android.test") { _ ->
+      addExtension(project)
       TODO()
     }
+    project.afterEvaluate {
+      it.extensions.findByType(AndroidComponentsExtension::class.java)
+          ?: throw IllegalStateException("No valid android plugin found on project: ${it.path}")
+    }
+  }
+
+  private fun addExtension(project: Project) {
+    project.extensions.create(
+        "androidComponents", AndroidComponentsExtension::class.java
+    )
   }
 }

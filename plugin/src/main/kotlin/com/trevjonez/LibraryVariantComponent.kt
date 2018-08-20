@@ -17,21 +17,19 @@
 package com.trevjonez
 
 import com.android.build.gradle.api.LibraryVariant
-import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.attributes.Usage
+import org.gradle.api.attributes.Usage.*
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.component.UsageContext
-import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaPlugin.*
 import org.gradle.jvm.internal.resolve.LibraryPublishArtifact
 
 class LibraryVariantComponent(
-    private val project: Project,
-    private val attributesFactory: ImmutableAttributesFactory,
     override val variant: LibraryVariant,
     override val baseComps: BaseComponentProvider
 ) : AndroidVariantComponent {
+
   override fun getName(): String =
       variant.name
 
@@ -43,54 +41,43 @@ class LibraryVariantComponent(
   }
 
   override fun getUsages(): Set<UsageContext> {
-
-    //TODO clean up this function
-    val apiElements = "${variant.name}${JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME.capitalize()}"
-    val runtimeElements = "${variant.name}${JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME.capitalize()}"
     return setOf(
-        AndroidVariantUsage(
-            variant.name, "api",
-            project.configurations.getByName(apiElements),
-            project.provider {
-              attributesFactory.mutable()
-                  .attribute(
-                      Usage.USAGE_ATTRIBUTE,
-                      project.objects.named(Usage::class.java, Usage.JAVA_API))
-                  .addAll(variant.compileConfiguration.attributes)
-            },
-            project.provider {
-              variant.outputs
-                  .map {
-                    LibraryPublishArtifact(it.outputType, it.outputFile)
-                        .builtBy(it.assemble)
-                  }
-                  .toSet()
-            }
+        usageFor(
+            "api", API_ELEMENTS_CONFIGURATION_NAME,
+            JAVA_API, variant.compileConfiguration
         ),
-        AndroidVariantUsage(
-            variant.name, "runtime",
-            project.configurations.getByName(runtimeElements),
-            project.provider {
-              attributesFactory.mutable()
-                  .attribute(
-                      Usage.USAGE_ATTRIBUTE,
-                      project.objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
-                  .addAll(variant.runtimeConfiguration.attributes)
-            },
-            project.provider {
-              variant.outputs
-                  .map {
-                    LibraryPublishArtifact(it.outputType, it.outputFile)
-                        .builtBy(it.assemble)
-                  }
-                  .toSet()
-            }
+        usageFor(
+            "runtime", RUNTIME_ELEMENTS_CONFIGURATION_NAME,
+            JAVA_RUNTIME, variant.runtimeConfiguration
         )
     )
   }
 
+  private fun usageFor(
+      configType: String, configName: String,
+      usageName: String, configuration: Configuration
+  ) = AndroidVariantUsage(
+      variant.name,
+      configType,
+      baseComps.configuration("${variant.name}${configName.capitalize()}"),
+      baseComps.provider { _ ->
+        baseComps.attributesFactory.mutable()
+            .attribute(USAGE_ATTRIBUTE, baseComps.usage(usageName))
+            .addAll(configuration.attributes)
+      },
+      baseComps.provider { _ ->
+        variant.outputs
+            .map {
+              LibraryPublishArtifact(it.outputType, it.outputFile)
+                  .builtBy(it.assemble)
+            }
+            .toSet()
+      }
+  )
+
   private val LibraryVariant.combinedNames: String
     get() {
-      return (productFlavors + buildType).joinToString(separator = "_") { it.name }
+      return (productFlavors + buildType)
+          .joinToString(separator = "_") { it.name }
     }
 }

@@ -71,6 +71,7 @@ tasks.named("test").configure {
 dependencies {
   compile("com.android.tools.build:gradle:settings.gradle.kts")
 
+  testCompile("org.assertj:assertj-core:3.11.0")
   testCompile("org.junit.jupiter:junit-jupiter-api:5.2.0")
   testRuntime("org.junit.jupiter:junit-jupiter-engine:5.2.0")
 }
