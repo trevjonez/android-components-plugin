@@ -143,7 +143,6 @@ internal class AndroidComponentsPluginTest {
     val buildResult = GradleRunner.create()
         .withProjectDir(testAppDir)
         .forwardOutput()
-        .withGradleVersion("4.10-rc-2")
         .withArguments("dependencies", "assemble", "--stacktrace", "--build-cache", "--scan")
         .withPluginClasspath()
         .build()
