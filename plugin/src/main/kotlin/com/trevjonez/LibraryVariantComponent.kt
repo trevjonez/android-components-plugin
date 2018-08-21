@@ -23,11 +23,14 @@ import org.gradle.api.attributes.Usage.*
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.plugins.JavaPlugin.*
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.jvm.internal.resolve.LibraryPublishArtifact
+import org.gradle.jvm.tasks.Jar
 
 class LibraryVariantComponent(
     override val variant: LibraryVariant,
-    override val baseComps: BaseComponentProvider
+    override val baseComps: BaseComponentProvider,
+    val sources: TaskProvider<Jar>
 ) : AndroidVariantComponent {
 
   override fun getName(): String =

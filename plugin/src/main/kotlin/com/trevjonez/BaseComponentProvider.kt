@@ -24,6 +24,8 @@ import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.TaskProvider
+import org.gradle.jvm.tasks.Jar
 
 class BaseComponentProvider(
     val project: Project,
@@ -62,5 +64,35 @@ class BaseComponentProvider(
   inline fun <reified T : AndroidVariantComponent> rootComponent() =
       AndroidComponent<T>(DefaultDomainObjectSet(T::class.java), this)
 
-  fun libVariantComponent(variant: LibraryVariant) = LibraryVariantComponent(variant, this)
+  fun libVariantComponent(variant: LibraryVariant): LibraryVariantComponent {
+    val sourcesTask = project.tasks.register(
+        "${variant.name}SourcesJar", Jar::class.java
+    ) { jarTask ->
+      jarTask.apply {
+        classifier = "sources"
+        onlyIf { _ -> !componentsExtension.disableSourcePublishing }
+        variant.sourceSets.forEach { sourceProvider ->
+          from(sourceProvider.aidlDirectories) { spec ->
+            spec.into("aidl")
+          }
+          from(sourceProvider.cDirectories) { spec ->
+            spec.into("c")
+          }
+          from(sourceProvider.cppDirectories) { spec ->
+            spec.into("cpp")
+          }
+          from(sourceProvider.javaDirectories) { spec ->
+            spec.into("java")
+          }
+          from(sourceProvider.renderscriptDirectories) { spec ->
+            spec.into("renderscript")
+          }
+          from(sourceProvider.shadersDirectories) { spec ->
+            spec.into("shaders")
+          }
+        }
+      }
+    }
+    return LibraryVariantComponent(variant, this, sourcesTask)
+  }
 }

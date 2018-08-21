@@ -97,6 +97,8 @@ class AndroidLibraryComponentsPlugin
               }
               from(variantComponent)
               publishWithOriginalFileName()
+              if (!baseComponentProvider.componentsExtension.disableSourcePublishing)
+                artifact(variantComponent.sources.get()) //TODO remove get when publish api gets lazy support
             }
           }
         }

@@ -19,6 +19,8 @@ package com.trevjonez
 import com.android.build.gradle.api.BaseVariant
 import org.gradle.api.component.PublishableComponent
 import org.gradle.api.internal.component.SoftwareComponentInternal
+import org.gradle.api.tasks.TaskProvider
+import org.gradle.jvm.tasks.Jar
 import org.gradle.language.ComponentWithOutputs
 
 interface AndroidVariantComponent :

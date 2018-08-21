@@ -21,4 +21,16 @@ open class AndroidComponentsExtension {
   var artifactId: String? = null
   var disableSourcePublishing = false
   var disableDocPublishing = false
+
+  fun artifactId(id: String?) {
+    artifactId = id
+  }
+
+  fun disableSourcePublishing(disable: Boolean) {
+    disableSourcePublishing = disable
+  }
+
+  fun disableDocPublishing(disable: Boolean) {
+    disableDocPublishing = disable
+  }
 }
