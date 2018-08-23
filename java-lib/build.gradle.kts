@@ -19,12 +19,22 @@ plugins {
   `maven-publish`
 }
 
+repositories {
+  google()
+  jcenter()
+  maven {
+    url = uri("../and-lib/build/.m2")
+  }
+}
+
 group = "com.trevjonez"
 version = "0.1.0"
 
 dependencies {
-  api("io.reactivex.rxjava2:rxjava:2.2.0")
-  implementation("com.squareup.moshi:moshi:1.6.0")
+//  api("io.reactivex.rxjava2:rxjava:2.2.0")
+//  implementation("com.squareup.moshi:moshi:1.6.0")
+  implementation(gradleApi())
+  implementation("com.trevjonez:and-lib:0.1.0")
 }
 
 publishing {

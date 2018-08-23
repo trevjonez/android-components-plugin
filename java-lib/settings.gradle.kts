@@ -25,8 +25,9 @@ buildscript {
   }
 }
 
-enableFeaturePreview("GRADLE_METADATA")
+//enableFeaturePreview("GRADLE_METADATA")
 enableFeaturePreview("STABLE_PUBLISHING")
+enableFeaturePreview("IMPROVED_POM_SUPPORT")
 
 gradle.rootProject {
   apply<com.gradle.scan.plugin.BuildScanPlugin>()
