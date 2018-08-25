@@ -14,59 +14,43 @@
  *    limitations under the License.
  */
 
-package com.trevjonez
+package com.trevjonez.internal.library
 
+import com.android.build.gradle.LibraryExtension
 import com.android.build.gradle.api.LibraryVariant
+import com.trevjonez.internal.AndroidComponent
+import com.trevjonez.internal.BaseComponentFactory
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.DefaultDomainObjectSet
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.jvm.tasks.Jar
 
-class BaseComponentProvider(
-    val project: Project,
+class LibraryComponentFactory(
+    project: Project,
+    attributesFactory: ImmutableAttributesFactory,
+    libraryExtension: LibraryExtension
+) : BaseComponentFactory<LibraryVariantComponent, LibraryVariant>(project, attributesFactory) {
 
-    val attributesFactory: ImmutableAttributesFactory,
-
-    val componentsExtension: AndroidComponentsExtension,
-
-    val defaultConfigProvider: Provider<String>,
-
-    val groupProvider: Provider<String> =
-        project.provider { project.group.toString() },
-
-    val baseNameProvider: Provider<String> =
-        project.provider { componentsExtension.artifactId ?: project.name },
-
-    val versionProvider: Provider<String> =
-        project.provider { project.version.toString() }
-) {
-
-  inline fun <T> provider(crossinline block: (project: Project) -> T) =
-      project.provider { block(project) }
-
-  fun configuration(configName: String) =
-      project.configurations.getByName(configName)
-
-  fun usage(name: String) = project.objects.named(Usage::class.java, name)
-
-  fun moduleVersionIdentifier(nameSuffix: String = ""): ModuleVersionIdentifier {
-    return DefaultModuleVersionIdentifier.newId(
-        groupProvider.get(),
-        baseNameProvider.get() + nameSuffix,
-        versionProvider.get())
+  override val defaultConfigProvider: Provider<String> = project.provider {
+    libraryExtension.defaultPublishConfig
   }
 
-  inline fun <reified T : AndroidVariantComponent> rootComponent() =
-      AndroidComponent<T>(DefaultDomainObjectSet(T::class.java), this)
+  override fun rootComponent(): AndroidComponent<LibraryVariantComponent> {
+    return AndroidComponent(DefaultDomainObjectSet(LibraryVariantComponent::class.java), this)
+  }
 
-  fun libVariantComponent(variant: LibraryVariant): LibraryVariantComponent {
-    val sourcesTask = project.tasks.register(
-        "${variant.name}SourcesJar", Jar::class.java
+  override fun variantComponent(variant: LibraryVariant): LibraryVariantComponent {
+    val sourcesTask = libSourceTask(variant)
+
+    return LibraryVariantComponent(variant, this, sourcesTask)
+  }
+
+  private fun libSourceTask(variant: LibraryVariant): TaskProvider<Jar> {
+    return project.tasks.register(
+        "${variant.name}SourcesJar",
+        Jar::class.java
     ) { jarTask ->
       jarTask.apply {
         classifier = "sources"
@@ -93,6 +77,5 @@ class BaseComponentProvider(
         }
       }
     }
-    return LibraryVariantComponent(variant, this, sourcesTask)
   }
 }

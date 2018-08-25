@@ -14,9 +14,13 @@
  *    limitations under the License.
  */
 
-package com.trevjonez
+package com.trevjonez.internal.library
 
 import com.android.build.gradle.api.LibraryVariant
+import com.trevjonez.internal.AndroidVariantComponent
+import com.trevjonez.internal.usage.AndroidVariantUsage
+import com.trevjonez.internal.addAll
+import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.attributes.Usage.*
@@ -29,7 +33,7 @@ import org.gradle.jvm.tasks.Jar
 
 class LibraryVariantComponent(
     override val variant: LibraryVariant,
-    override val baseComps: BaseComponentProvider,
+    override val compFactory: LibraryComponentFactory,
     val sources: TaskProvider<Jar>
 ) : AndroidVariantComponent {
 
@@ -40,7 +44,7 @@ class LibraryVariantComponent(
       variant.packageLibrary.outputs.files
 
   override fun getCoordinates(): ModuleVersionIdentifier {
-    return baseComps.moduleVersionIdentifier("_${variant.combinedNames}")
+    return compFactory.moduleVersionIdentifier("_${variant.combinedNames}")
   }
 
   override fun getUsages(): Set<UsageContext> {
@@ -62,13 +66,13 @@ class LibraryVariantComponent(
   ) = AndroidVariantUsage(
       variant.name,
       configType,
-      baseComps.configuration("${variant.name}${configName.capitalize()}"),
-      baseComps.provider { _ ->
-        baseComps.attributesFactory.mutable()
-            .attribute(USAGE_ATTRIBUTE, baseComps.usage(usageName))
+      compFactory.configuration("${variant.name}${configName.capitalize()}"),
+      compFactory.project.provider {
+        compFactory.attributesFactory.mutable()
+            .attribute(USAGE_ATTRIBUTE, compFactory.usage(usageName))
             .addAll(configuration.attributes)
       },
-      baseComps.provider { _ ->
+      compFactory.project.provider {
         variant.outputs
             .map {
               LibraryPublishArtifact(it.outputType, it.outputFile)

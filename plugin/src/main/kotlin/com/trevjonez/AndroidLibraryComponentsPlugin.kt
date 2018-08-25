@@ -17,6 +17,7 @@
 package com.trevjonez
 
 import com.android.build.gradle.LibraryExtension
+import com.trevjonez.internal.library.LibraryComponentFactory
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
@@ -24,50 +25,44 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal
 import javax.inject.Inject
-import kotlin.NullPointerException
+import kotlin.LazyThreadSafetyMode.*
 
 class AndroidLibraryComponentsPlugin
 @Inject constructor(
     private val attributesFactory: ImmutableAttributesFactory
 ) : Plugin<Project> {
 
-  override fun apply(project: Project) {
-    val libExtension =
-        project.extensions.findByType(LibraryExtension::class.java)
-            ?: throw NullPointerException("Do not apply ${javaClass.simpleName} directly. Use \"android-components\"")
+  private lateinit var project: Project
 
-    val componentsExtension =
-        project.extensions.findByType(AndroidComponentsExtension::class.java)
-            ?: throw NullPointerException("Do not apply ${javaClass.simpleName} directly. Use \"android-components\"")
-
-    val baseComponentProvider = BaseComponentProvider(
-        project,
-        attributesFactory,
-        componentsExtension,
-        project.provider {
-          libExtension.defaultPublishConfig
-        })
-
-    val rootComponent = baseComponentProvider.rootComponent<LibraryVariantComponent>()
-
-    project.components.add(rootComponent)
-
-    libExtension.libraryVariants.all { variant ->
-      val variantComponent = baseComponentProvider.libVariantComponent(variant)
-      project.components.add(variantComponent)
-      rootComponent.variantComponents.add(variantComponent)
-    }
-
-    registerComponentsWithMavenPublishPlugin(
-        project, baseComponentProvider, rootComponent
-    )
+  private val libExtension by lazy(NONE) {
+    project.extensions.findByType(LibraryExtension::class.java)
+        ?: throw NullPointerException("Do not apply ${javaClass.simpleName} directly. Use \"android-components\"")
   }
 
-  private fun registerComponentsWithMavenPublishPlugin(
-      project: Project,
-      baseComponentProvider: BaseComponentProvider,
-      rootComponent: AndroidComponent<LibraryVariantComponent>
-  ) {
+  private val componentFactory by lazy(NONE) {
+    LibraryComponentFactory(project, attributesFactory, libExtension)
+  }
+
+  private val rootComponent by lazy(NONE) {
+    componentFactory.rootComponent()
+  }
+
+  override fun apply(target: Project) {
+    project = target
+
+    libExtension.libraryVariants.all { variant ->
+      rootComponent.variantComponents.add(
+          componentFactory.variantComponent(variant)
+      )
+    }
+
+    project.components.add(rootComponent)
+    project.components.addAll(rootComponent.variantComponents)
+
+    registerComponentsWithMavenPublishPlugin()
+  }
+
+  private fun registerComponentsWithMavenPublishPlugin() {
     project.pluginManager.withPlugin("maven-publish") { _ ->
       project.extensions.configure("publishing") { publishing: PublishingExtension ->
         publishing.publications.apply {
@@ -76,7 +71,7 @@ class AndroidLibraryComponentsPlugin
             this as MavenPublicationInternal
             if (!androidExists) {
               mavenProjectIdentity.artifactId.set(
-                  baseComponentProvider.baseNameProvider
+                  componentFactory.baseNameProvider
               )
             }
             from(rootComponent)
@@ -97,7 +92,7 @@ class AndroidLibraryComponentsPlugin
               }
               from(variantComponent)
               publishWithOriginalFileName()
-              if (!baseComponentProvider.componentsExtension.disableSourcePublishing)
+              if (!componentFactory.componentsExtension.disableSourcePublishing)
                 artifact(variantComponent.sources.get()) //TODO remove get when publish api gets lazy support
             }
           }

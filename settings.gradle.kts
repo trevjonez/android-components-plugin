@@ -33,10 +33,12 @@
 rootProject.name = "android-components"
 
 include("plugin")
+//includeBuild("and-app")
 //includeBuild("and-lib")
 //includeBuild("java-lib")
 
 val AGP_VERSION = "3.1.4"
+val KOTLIN_VERSION = "1.2.61"
 
 pluginManagement {
   repositories {
@@ -48,6 +50,8 @@ pluginManagement {
     eachPlugin {
       if (requested.id.id.startsWith("com.android"))
         useModule("com.android.tools.build:gradle:$AGP_VERSION")
+      if (requested.id.id.startsWith("org.jetbrains.kotlin"))
+        useVersion(KOTLIN_VERSION)
     }
   }
 }
@@ -68,7 +72,7 @@ gradle.allprojects {
           useVersion(AGP_VERSION)
 
         if (requested.group == "org.jetbrains.kotlin" && requested.name == "kotlin-stdlib-jre8")
-          useTarget("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.2.60")
+          useTarget("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION")
       }
     }
   }

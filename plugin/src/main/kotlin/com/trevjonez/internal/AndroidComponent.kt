@@ -14,29 +14,29 @@
  *    limitations under the License.
  */
 
-package com.trevjonez
+package com.trevjonez.internal
 
 import com.android.build.gradle.api.BaseVariant
+import com.trevjonez.internal.usage.DefaultVariantForwardingUsage
 import org.gradle.api.DomainObjectSet
-import org.gradle.api.Project
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.attributes.Usage
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.component.SoftwareComponent
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.component.UsageContext
+import kotlin.LazyThreadSafetyMode.*
 
 class AndroidComponent<VC : AndroidVariantComponent>(
     val variantComponents: DomainObjectSet<VC>,
-    override val baseComps: BaseComponentProvider
+    override val compFactory: BaseComponentFactory<VC, *>
 ) : ComponentWithVariants, AndroidVariantComponent {
   override val variant: BaseVariant
     get() = defaultVariant.variant
 
-  private val defaultVariant: VC by lazy {
-    val defaultName = baseComps.defaultConfigProvider.get()
+  private val defaultVariant: VC by lazy(NONE) {
+    val defaultName = compFactory.defaultConfigProvider.get()
     variantComponents.firstOrNull { it.variant.name == defaultName }
         ?: throw IllegalStateException(
             """Specified default publish config `$defaultName` was not found.
@@ -65,17 +65,17 @@ class AndroidComponent<VC : AndroidVariantComponent>(
               defaultVariant.coordinates.name,
               defaultVariant.coordinates.version
           ),
-          baseComps.project.provider {
-            baseComps.attributesFactory.of(
+          compFactory.project.provider {
+            compFactory.attributesFactory.of(
                 Usage.USAGE_ATTRIBUTE,
-                baseComps.project.objects.named(Usage::class.java, Usage.JAVA_API)
+                compFactory.project.objects.named(Usage::class.java, Usage.JAVA_API)
             )
           }
       ))
 
-  override fun getOutputs(): FileCollection = baseComps.project.files()
+  override fun getOutputs(): FileCollection = compFactory.project.files()
 
   override fun getCoordinates(): ModuleVersionIdentifier {
-    return baseComps.moduleVersionIdentifier()
+    return compFactory.moduleVersionIdentifier()
   }
 }

@@ -14,43 +14,46 @@
  *    limitations under the License.
  */
 
-package com.trevjonez
+package com.trevjonez.internal.usage
 
-import org.gradle.api.artifacts.DependencyConstraint
-import org.gradle.api.artifacts.ExcludeRule
-import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.artifacts.PublishArtifact
+import com.trevjonez.internal.from
+import org.gradle.api.artifacts.*
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.attributes.Usage
 import org.gradle.api.capabilities.Capability
+import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.provider.Provider
 
-class DefaultVariantForwardingUsage(
-    private val redirectDependency: ModuleDependency,
-    private val attributes: Provider<AttributeContainer>
+class AndroidVariantUsage(
+    private val variantName: String,
+    private val configType: String,
+    private val config: Configuration,
+    private val attributes: Provider<AttributeContainer>,
+    private val artifacts: Provider<Set<PublishArtifact>>
 ) : UsageContext {
-  override fun getUsage(): Usage =
-      Usage.USAGE_ATTRIBUTE from attributes.get()
 
-  override fun getName(): String {
-    return "legacy-support-redirect"
-  }
-
-  override fun getCapabilities(): Set<Capability> =
-      emptySet()
-
-  override fun getDependencies(): Set<ModuleDependency> =
-      setOf(redirectDependency)
-
-  override fun getDependencyConstraints(): Set<DependencyConstraint> =
-      emptySet()
-
-  override fun getGlobalExcludes(): Set<ExcludeRule> =
-      emptySet()
+  override fun getName() =
+      "$variantName${configType.capitalize()}"
 
   override fun getArtifacts(): Set<PublishArtifact> =
-      emptySet()
+      artifacts.get()
+
+  //TODO auto convert project into artifact?
+  override fun getDependencies(): Set<ModuleDependency> =
+      config.incoming.dependencies.withType(ModuleDependency::class.java)
+
+  override fun getDependencyConstraints(): Set<DependencyConstraint> =
+      config.incoming.dependencyConstraints
+
+  override fun getCapabilities(): Set<Capability> =
+      Configurations.collectCapabilities(config, mutableSetOf(), mutableSetOf())
+
+  override fun getGlobalExcludes(): Set<ExcludeRule> =
+      config.excludeRules
+
+  override fun getUsage(): Usage =
+      Usage.USAGE_ATTRIBUTE from attributes.get()
 
   override fun getAttributes(): AttributeContainer =
       attributes.get()

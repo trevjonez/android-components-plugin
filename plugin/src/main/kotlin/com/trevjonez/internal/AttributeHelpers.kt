@@ -14,19 +14,21 @@
  *    limitations under the License.
  */
 
-package com.trevjonez
+package com.trevjonez.internal
 
-import com.android.build.gradle.api.BaseVariant
-import org.gradle.api.component.PublishableComponent
-import org.gradle.api.internal.component.SoftwareComponentInternal
-import org.gradle.api.tasks.TaskProvider
-import org.gradle.jvm.tasks.Jar
-import org.gradle.language.ComponentWithOutputs
+import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.AttributeContainer
 
-interface AndroidVariantComponent :
-    ComponentWithOutputs,
-    PublishableComponent,
-    SoftwareComponentInternal {
-  val variant: BaseVariant
-  val baseComps: BaseComponentProvider
+
+@Suppress("UNCHECKED_CAST")
+fun AttributeContainer.addAll(
+    attributes: AttributeContainer
+): AttributeContainer = apply {
+  attributes.keySet().forEach {
+    it as Attribute<Any>
+    attribute(it, attributes.getAttribute(it)!!)
+  }
 }
+
+inline infix fun <reified T> Attribute<T>.from(container: AttributeContainer): T =
+    T::class.java.cast(container.getAttribute(this))
