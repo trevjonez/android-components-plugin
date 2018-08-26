@@ -14,9 +14,13 @@
  *    limitations under the License.
  */
 
+import org.gradle.cache.FileLock
+import org.jetbrains.kotlin.android.synthetic.AndroidComponentRegistrar
+import java.io.RandomAccessFile
+
 plugins {
   `java-gradle-plugin`
-  id("nebula.kotlin") version "1.2.61"
+  kotlin("jvm")
   `maven-publish`
 }
 
@@ -38,6 +42,7 @@ tasks.named("test").configure {
   systemProperty("org.gradle.testkit.debug", false)
 
   inputs.files(
+      "gradle.properties",
       "../and-lib/build.gradle.kts",
       "../and-lib/build-flavors.gradle.kts",
       "../and-lib/settings.gradle.kts",
@@ -45,12 +50,14 @@ tasks.named("test").configure {
       "../and-app/settings.gradle.kts")
   inputs.dir("../and-lib/src")
   inputs.dir("../and-app/src")
+
   outputs.dir("../and-lib/build")
   outputs.dir("../and-app/build")
 }
 
 dependencies {
-  compile("com.android.tools.build:gradle:.")
+  compile(kotlin("stdlib-jdk8"))
+  compile("com.android.tools.build:gradle")
 
   testCompile("org.assertj:assertj-core:3.11.0")
   testCompile("org.junit.jupiter:junit-jupiter-api:5.2.0")

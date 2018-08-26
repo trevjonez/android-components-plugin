@@ -17,12 +17,9 @@
 rootProject.name = "android-components"
 
 include("plugin")
-//includeBuild("and-app")
-//includeBuild("and-lib")
-//includeBuild("java-lib")
 
-val AGP_VERSION = "3.1.4"
-val KOTLIN_VERSION = "1.2.61"
+val AGP_VERSION: String by settings
+val KOTLIN_VERSION: String by settings
 
 pluginManagement {
   repositories {
@@ -71,7 +68,8 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath("com.gradle:build-scan-plugin:1.15.1")
+    val GRADLE_SCAN_VERSION: String by settings
+    classpath("com.gradle:build-scan-plugin:$GRADLE_SCAN_VERSION")
   }
 }
 

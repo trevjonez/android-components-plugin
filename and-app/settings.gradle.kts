@@ -16,7 +16,7 @@
 
 rootProject.name = "and-app"
 
-val AGP_VERSION = "3.1.4"
+val AGP_VERSION: String by settings
 
 buildscript {
   repositories {
@@ -26,7 +26,8 @@ buildscript {
     mavenLocal()
   }
   dependencies {
-    classpath("com.gradle:build-scan-plugin:1.15.1")
+    val GRADLE_SCAN_VERSION: String by settings
+    classpath("com.gradle:build-scan-plugin:$GRADLE_SCAN_VERSION")
   }
 }
 
