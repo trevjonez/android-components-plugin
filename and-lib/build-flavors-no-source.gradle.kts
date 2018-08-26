@@ -77,5 +77,5 @@ publishing {
 }
 
 androidComponents {
-  disableSourcePublishing = true
+  publishSources = false
 }

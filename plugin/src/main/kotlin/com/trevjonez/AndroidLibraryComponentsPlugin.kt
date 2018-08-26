@@ -25,7 +25,7 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal
 import javax.inject.Inject
-import kotlin.LazyThreadSafetyMode.*
+import kotlin.LazyThreadSafetyMode.NONE
 
 class AndroidLibraryComponentsPlugin
 @Inject constructor(
@@ -92,8 +92,9 @@ class AndroidLibraryComponentsPlugin
               }
               from(variantComponent)
               publishWithOriginalFileName()
-              if (!componentFactory.componentsExtension.disableSourcePublishing)
-                artifact(variantComponent.sources.get()) //TODO remove get when publish api gets lazy support
+              if (componentFactory.componentsExtension.publishSources)
+              //TODO remove get when publish api gets lazy support
+                artifact(variantComponent.sourcesTask.get())
             }
           }
         }

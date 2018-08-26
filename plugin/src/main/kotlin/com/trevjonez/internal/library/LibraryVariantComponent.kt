@@ -18,23 +18,23 @@ package com.trevjonez.internal.library
 
 import com.android.build.gradle.api.LibraryVariant
 import com.trevjonez.internal.AndroidVariantComponent
-import com.trevjonez.internal.usage.AndroidVariantUsage
 import com.trevjonez.internal.addAll
-import org.gradle.api.Project
+import com.trevjonez.internal.usage.AndroidVariantUsage
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.attributes.Usage.*
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.component.UsageContext
-import org.gradle.api.plugins.JavaPlugin.*
+import org.gradle.api.plugins.JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME
+import org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.jvm.internal.resolve.LibraryPublishArtifact
-import org.gradle.jvm.tasks.Jar
 
 class LibraryVariantComponent(
     override val variant: LibraryVariant,
     override val compFactory: LibraryComponentFactory,
-    val sources: TaskProvider<Jar>
+    val sourcesTask: TaskProvider<out AbstractArchiveTask>
 ) : AndroidVariantComponent {
 
   override fun getName(): String =

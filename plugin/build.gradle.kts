@@ -14,9 +14,6 @@
  *    limitations under the License.
  */
 
-import org.gradle.api.JavaVersion.VERSION_1_8
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
   `java-gradle-plugin`
   id("nebula.kotlin") version "1.2.61"
@@ -53,7 +50,7 @@ tasks.named("test").configure {
 }
 
 dependencies {
-  compile("com.android.tools.build:gradle:settings.gradle.kts")
+  compile("com.android.tools.build:gradle:.")
 
   testCompile("org.assertj:assertj-core:3.11.0")
   testCompile("org.junit.jupiter:junit-jupiter-api:5.2.0")

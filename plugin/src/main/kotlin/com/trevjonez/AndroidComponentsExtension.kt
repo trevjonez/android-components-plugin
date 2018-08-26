@@ -16,21 +16,15 @@
 
 package com.trevjonez
 
-
 open class AndroidComponentsExtension {
   var artifactId: String? = null
-  var disableSourcePublishing = false
-  var disableDocPublishing = false
+  var publishSources = true
 
   fun artifactId(id: String?) {
     artifactId = id
   }
 
-  fun disableSourcePublishing(disable: Boolean) {
-    disableSourcePublishing = disable
-  }
-
-  fun disableDocPublishing(disable: Boolean) {
-    disableDocPublishing = disable
+  fun publishSources(enabled: Boolean) {
+    publishSources = enabled
   }
 }

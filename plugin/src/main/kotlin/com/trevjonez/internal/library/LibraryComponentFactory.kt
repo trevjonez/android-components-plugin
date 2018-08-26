@@ -25,12 +25,15 @@ import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.api.tasks.javadoc.Javadoc
+import org.gradle.external.javadoc.StandardJavadocDocletOptions
 import org.gradle.jvm.tasks.Jar
+import java.io.File
 
 class LibraryComponentFactory(
     project: Project,
     attributesFactory: ImmutableAttributesFactory,
-    libraryExtension: LibraryExtension
+    val libraryExtension: LibraryExtension
 ) : BaseComponentFactory<LibraryVariantComponent, LibraryVariant>(project, attributesFactory) {
 
   override val defaultConfigProvider: Provider<String> = project.provider {
@@ -42,9 +45,10 @@ class LibraryComponentFactory(
   }
 
   override fun variantComponent(variant: LibraryVariant): LibraryVariantComponent {
-    val sourcesTask = libSourceTask(variant)
-
-    return LibraryVariantComponent(variant, this, sourcesTask)
+    return LibraryVariantComponent(
+        variant,
+        this,
+        libSourceTask(variant))
   }
 
   private fun libSourceTask(variant: LibraryVariant): TaskProvider<Jar> {
@@ -54,7 +58,6 @@ class LibraryComponentFactory(
     ) { jarTask ->
       jarTask.apply {
         classifier = "sources"
-        onlyIf { _ -> !componentsExtension.disableSourcePublishing }
         variant.sourceSets.forEach { sourceProvider ->
           from(sourceProvider.aidlDirectories) { spec ->
             spec.into("aidl")
