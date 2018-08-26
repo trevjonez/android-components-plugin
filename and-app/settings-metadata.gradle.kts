@@ -55,5 +55,6 @@ gradle.rootProject {
   configure<com.gradle.scan.plugin.BuildScanExtension> {
     setTermsOfServiceUrl("https://gradle.com/terms-of-service")
     setTermsOfServiceAgree("yes")
+    publishAlways()
   }
 }

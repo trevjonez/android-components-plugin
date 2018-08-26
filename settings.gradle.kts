@@ -52,8 +52,8 @@ gradle.allprojects {
         if (requested.group == "com.android.tools.build" && requested.name == "gradle")
           useVersion(AGP_VERSION)
 
-        if (requested.group == "org.jetbrains.kotlin" && requested.name == "kotlin-stdlib-jre8")
-          useTarget("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION")
+//        if (requested.group == "org.jetbrains.kotlin" && requested.name == "kotlin-stdlib-jre8")
+//          useTarget("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION")
       }
     }
   }
@@ -79,5 +79,6 @@ gradle.rootProject {
   configure<com.gradle.scan.plugin.BuildScanExtension> {
     setTermsOfServiceUrl("https://gradle.com/terms-of-service")
     setTermsOfServiceAgree("yes")
+    publishAlways()
   }
 }

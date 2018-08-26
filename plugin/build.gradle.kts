@@ -16,6 +16,7 @@
 
 import org.gradle.cache.FileLock
 import org.jetbrains.kotlin.android.synthetic.AndroidComponentRegistrar
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.RandomAccessFile
 
 plugins {

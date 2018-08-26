@@ -31,18 +31,23 @@ internal class AndroidComponentsPluginTest {
   val testLibDir by systemProperty { File(it) }
   val testAppDir by systemProperty { File(it) }
 
+  private fun runner(dir: File) =
+      GradleRunner.create()
+          .withProjectDir(dir)
+          .forwardOutput()
+          .withPluginClasspath()
+          .withGradleVersion("4.10-rc-3")
+
   @BeforeEach
   internal fun setUp() {
     File(testLibDir, "build").deleteRecursively()
+    File(testAppDir, "build").deleteRecursively()
   }
 
   @Test
   internal fun `lib can publish build type variants as expected`() {
-    val buildResult = GradleRunner.create()
-        .withProjectDir(testLibDir)
-        .forwardOutput()
-        .withArguments("publish", "--stacktrace", "--build-cache", "--scan")
-        .withPluginClasspath()
+    val buildResult = runner(testLibDir)
+        .withArguments("publish", "--stacktrace")
         .build()
 
     assertThat(buildResult.task(":publish")!!.outcome)
@@ -67,11 +72,8 @@ internal class AndroidComponentsPluginTest {
 
   @Test
   internal fun `lib can specify artifact id and not be overwritten`() {
-    val buildResult = GradleRunner.create()
-        .withProjectDir(testLibDir)
-        .forwardOutput()
-        .withArguments("-b", "build-id-spec.gradle.kts", "publish", "--stacktrace", "--build-cache", "--scan")
-        .withPluginClasspath()
+    val buildResult = runner(testLibDir)
+        .withArguments("-b", "build-id-spec.gradle.kts", "publish", "--stacktrace")
         .build()
 
     assertThat(buildResult.task(":publish")!!.outcome)
@@ -96,11 +98,8 @@ internal class AndroidComponentsPluginTest {
 
   @Test
   internal fun `lib can publish build type and single flavor dimension variants as expected`() {
-    val buildResult = GradleRunner.create()
-        .withProjectDir(testLibDir)
-        .forwardOutput()
-        .withArguments("-b", "build-flavors.gradle.kts", "publish", "--stacktrace", "--build-cache", "--scan")
-        .withPluginClasspath()
+    val buildResult = runner(testLibDir)
+        .withArguments("-b", "build-flavors.gradle.kts", "publish", "--stacktrace")
         .build()
 
     assertThat(buildResult.task(":publish")!!.outcome)
@@ -139,11 +138,8 @@ internal class AndroidComponentsPluginTest {
 
   @Test
   internal fun `lib can publish build type and single flavor dimension variants without sources`() {
-    val buildResult = GradleRunner.create()
-        .withProjectDir(testLibDir)
-        .forwardOutput()
-        .withArguments("-b", "build-flavors-no-source.gradle.kts", "publish", "--stacktrace", "--build-cache", "--scan")
-        .withPluginClasspath()
+    val buildResult = runner(testLibDir)
+        .withArguments("-b", "build-flavors-no-source.gradle.kts", "publish", "--stacktrace")
         .build()
 
     assertThat(buildResult.task(":publish")!!.outcome)
@@ -181,18 +177,12 @@ internal class AndroidComponentsPluginTest {
 
   @Test
   internal fun `app can consume lib via redirecting pom`() {
-    GradleRunner.create()
-        .withProjectDir(testLibDir)
-        .forwardOutput()
-        .withArguments("publish", "--stacktrace", "--build-cache", "--scan")
-        .withPluginClasspath()
+    runner(testLibDir)
+        .withArguments("publish", "--stacktrace")
         .build()
 
-    val buildResult = GradleRunner.create()
-        .withProjectDir(testAppDir)
-        .forwardOutput()
-        .withArguments("dependencies", "assemble", "--stacktrace", "--build-cache", "--scan")
-        .withPluginClasspath()
+    val buildResult = runner(testAppDir)
+        .withArguments("dependencies", "assemble", "--stacktrace")
         .build()
 
     assertThat(buildResult.task(":assemble")!!.outcome)
@@ -201,18 +191,12 @@ internal class AndroidComponentsPluginTest {
 
   @Test
   internal fun `app can consume lib via module metadata`() {
-    GradleRunner.create()
-        .withProjectDir(testLibDir)
-        .forwardOutput()
-        .withArguments("publish", "--stacktrace", "--build-cache", "--scan")
-        .withPluginClasspath()
+    runner(testLibDir)
+        .withArguments("publish", "--stacktrace")
         .build()
 
-    val buildResult = GradleRunner.create()
-        .withProjectDir(testAppDir)
-        .forwardOutput()
-        .withArguments("-c", "settings-metadata.gradle.kts", "dependencies", "assemble", "--stacktrace", "--build-cache", "--scan")
-        .withPluginClasspath()
+    val buildResult = runner(testAppDir)
+        .withArguments("-c", "settings-metadata.gradle.kts", "dependencies", "assemble", "--stacktrace")
         .build()
 
     assertThat(buildResult.task(":assemble")!!.outcome)
@@ -254,18 +238,12 @@ internal class AndroidComponentsPluginTest {
 
   @Test
   internal fun `app can consume single flavor dimension variants lib via redirecting pom`() {
-    GradleRunner.create()
-        .withProjectDir(testLibDir)
-        .forwardOutput()
-        .withArguments("-b", "build-flavors.gradle.kts", "publish", "--stacktrace", "--build-cache", "--scan")
-        .withPluginClasspath()
+    runner(testLibDir)
+        .withArguments("-b", "build-flavors.gradle.kts", "publish", "--stacktrace")
         .build()
 
-    val buildResult = GradleRunner.create()
-        .withProjectDir(testAppDir)
-        .forwardOutput()
-        .withArguments("assemble", "--stacktrace", "--build-cache", "--scan")
-        .withPluginClasspath()
+    val buildResult = runner(testAppDir)
+        .withArguments("assemble", "--stacktrace")
         .build()
 
     assertThat(buildResult.task(":assemble")!!.outcome)
@@ -274,18 +252,12 @@ internal class AndroidComponentsPluginTest {
 
   @Test
   internal fun `app can consume single flavor dimension variants lib via module metadata`() {
-    GradleRunner.create()
-        .withProjectDir(testLibDir)
-        .forwardOutput()
-        .withArguments("-b", "build-flavors.gradle.kts", "publish", "--stacktrace", "--build-cache", "--scan")
-        .withPluginClasspath()
+    runner(testLibDir)
+        .withArguments("-b", "build-flavors.gradle.kts", "publish", "--stacktrace")
         .build()
 
-    val buildResult = GradleRunner.create()
-        .withProjectDir(testAppDir)
-        .forwardOutput()
-        .withArguments("-c", "settings-metadata.gradle.kts", "dependencies", "assemble", "--stacktrace", "--build-cache", "--scan")
-        .withPluginClasspath()
+    val buildResult = runner(testAppDir)
+        .withArguments("-c", "settings-metadata.gradle.kts", "dependencies", "assemble", "--stacktrace")
         .build()
 
     assertThat(buildResult.task(":assemble")!!.outcome)
@@ -327,18 +299,12 @@ internal class AndroidComponentsPluginTest {
 
   @Test
   internal fun `app with single flavor dimension variants can consume single flavor dimension variants lib via module metadata`() {
-    GradleRunner.create()
-        .withProjectDir(testLibDir)
-        .forwardOutput()
-        .withArguments("-b", "build-flavors.gradle.kts", "publish", "--stacktrace", "--build-cache", "--scan")
-        .withPluginClasspath()
+    runner(testLibDir)
+        .withArguments("-b", "build-flavors.gradle.kts", "publish", "--stacktrace")
         .build()
 
-    val buildResult = GradleRunner.create()
-        .withProjectDir(testAppDir)
-        .forwardOutput()
-        .withArguments("-b", "build-flavors.gradle.kts", "-c", "settings-metadata.gradle.kts", "dependencies", "assemble", "--stacktrace", "--build-cache", "--scan")
-        .withPluginClasspath()
+    val buildResult = runner(testAppDir)
+        .withArguments("-b", "build-flavors.gradle.kts", "-c", "settings-metadata.gradle.kts", "dependencies", "assemble", "--stacktrace")
         .build()
 
     assertThat(buildResult.task(":assemble")!!.outcome)
@@ -408,18 +374,12 @@ internal class AndroidComponentsPluginTest {
 
   @Test
   internal fun `app with multi flavor dimension variants can consume multi flavor dimension variants lib via module metadata`() {
-    GradleRunner.create()
-        .withProjectDir(testLibDir)
-        .forwardOutput()
-        .withArguments("-b", "build-flavors-many.gradle.kts", "publish", "--stacktrace", "--build-cache", "--scan")
-        .withPluginClasspath()
+    runner(testLibDir)
+        .withArguments("-b", "build-flavors-many.gradle.kts", "publish", "--stacktrace")
         .build()
 
-    val buildResult = GradleRunner.create()
-        .withProjectDir(testAppDir)
-        .forwardOutput()
-        .withArguments("-b", "build-flavors-many.gradle.kts", "-c", "settings-metadata.gradle.kts", "assemble", "dependencies", "--stacktrace", "--build-cache", "--scan")
-        .withPluginClasspath()
+    val buildResult = runner(testAppDir)
+        .withArguments("-b", "build-flavors-many.gradle.kts", "-c", "settings-metadata.gradle.kts", "assemble", "dependencies", "--stacktrace")
         .build()
 
     assertThat(buildResult.output).contains("""
