@@ -39,7 +39,7 @@ pluginManagement {
 
 gradle.allprojects {
   group = "com.trevjonez.android-components"
-  version = "1.0-SNAPSHOT"
+  version = "0.1.0"
 
   repositories {
     google()
@@ -51,9 +51,6 @@ gradle.allprojects {
       eachDependency {
         if (requested.group == "com.android.tools.build" && requested.name == "gradle")
           useVersion(AGP_VERSION)
-
-//        if (requested.group == "org.jetbrains.kotlin" && requested.name == "kotlin-stdlib-jre8")
-//          useTarget("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION")
       }
     }
   }
@@ -61,6 +58,7 @@ gradle.allprojects {
 
 enableFeaturePreview("GRADLE_METADATA")
 enableFeaturePreview("STABLE_PUBLISHING")
+enableFeaturePreview("IMPROVED_POM_SUPPORT")
 
 buildscript {
   repositories {

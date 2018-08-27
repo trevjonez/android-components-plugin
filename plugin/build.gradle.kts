@@ -23,6 +23,7 @@ plugins {
   `java-gradle-plugin`
   kotlin("jvm")
   `maven-publish`
+  id("com.gradle.plugin-publish") version "0.10.0"
 }
 
 gradlePlugin {
@@ -63,4 +64,17 @@ dependencies {
   testCompile("org.assertj:assertj-core:3.11.0")
   testCompile("org.junit.jupiter:junit-jupiter-api:5.2.0")
   testRuntime("org.junit.jupiter:junit-jupiter-engine:5.2.0")
+}
+
+pluginBundle {
+  website = "https://github.com/trevjonez/android-components-plugin"
+  vcsUrl = "git@github.com:trevjonez/android-components-plugin.git"
+  (plugins) {
+    "android-components" {
+      displayName = name
+      description = "Variant aware android publishing, via `maven-publish` plugin."
+      tags = listOf("android", "maven", "variant", "aar", "android-library",
+          "publish", "components", ".module", "metadata")
+    }
+  }
 }
