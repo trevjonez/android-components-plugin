@@ -24,6 +24,7 @@ plugins {
   kotlin("jvm")
   `maven-publish`
   id("com.gradle.plugin-publish") version "0.10.0"
+  `kotlin-dsl`
 }
 
 gradlePlugin {
@@ -58,7 +59,6 @@ tasks.named("test").configure {
 }
 
 dependencies {
-  compile(kotlin("stdlib-jdk8"))
   compile("com.android.tools.build:gradle")
 
   testCompile("org.assertj:assertj-core:3.11.0")

@@ -55,29 +55,15 @@ class LibraryComponentFactory(
     return project.tasks.register(
         "${variant.name}SourcesJar",
         Jar::class.java
-    ) { jarTask ->
-      jarTask.apply {
-        classifier = "sources"
-        variant.sourceSets.forEach { sourceProvider ->
-          from(sourceProvider.aidlDirectories) { spec ->
-            spec.into("aidl")
-          }
-          from(sourceProvider.cDirectories) { spec ->
-            spec.into("c")
-          }
-          from(sourceProvider.cppDirectories) { spec ->
-            spec.into("cpp")
-          }
-          from(sourceProvider.javaDirectories) { spec ->
-            spec.into("java")
-          }
-          from(sourceProvider.renderscriptDirectories) { spec ->
-            spec.into("renderscript")
-          }
-          from(sourceProvider.shadersDirectories) { spec ->
-            spec.into("shaders")
-          }
-        }
+    ) {
+      classifier = "sources"
+      variant.sourceSets.forEach { sourceProvider ->
+        from(sourceProvider.aidlDirectories) { into("aidl") }
+        from(sourceProvider.cDirectories) { into("c") }
+        from(sourceProvider.cppDirectories) { into("cpp") }
+        from(sourceProvider.javaDirectories) { into("java") }
+        from(sourceProvider.renderscriptDirectories) { into("renderscript") }
+        from(sourceProvider.shadersDirectories) { into("shaders") }
       }
     }
   }

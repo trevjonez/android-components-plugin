@@ -17,9 +17,13 @@
 package com.trevjonez
 
 import com.android.build.gradle.LibraryExtension
+import com.android.build.gradle.api.LibraryVariant
 import com.trevjonez.internal.library.LibraryComponentFactory
+import com.trevjonez.internal.library.LibraryVariantComponent
+import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
@@ -50,11 +54,14 @@ class AndroidLibraryComponentsPlugin
   override fun apply(target: Project) {
     project = target
 
-    libExtension.libraryVariants.all { variant ->
-      rootComponent.variantComponents.add(
-          componentFactory.variantComponent(variant)
-      )
-    }
+    @Suppress("ObjectLiteralToLambda")
+    libExtension.libraryVariants.all(object : Action<LibraryVariant> {
+      override fun execute(variant: LibraryVariant) {
+        rootComponent.variantComponents.add(
+            componentFactory.variantComponent(variant)
+        )
+      }
+    })
 
     project.components.add(rootComponent)
     project.components.addAll(rootComponent.variantComponents)
@@ -62,10 +69,11 @@ class AndroidLibraryComponentsPlugin
     registerComponentsWithMavenPublishPlugin()
   }
 
+  @Suppress("ObjectLiteralToLambda")
   private fun registerComponentsWithMavenPublishPlugin() {
-    project.pluginManager.withPlugin("maven-publish") { _ ->
-      project.extensions.configure("publishing") { publishing: PublishingExtension ->
-        publishing.publications.apply {
+    project.pluginManager.withPlugin("maven-publish") {
+      project.extensions.configure(PublishingExtension::class.java) {
+        publications.apply {
           val androidExists = findByName("android") != null
           maybeCreate("android", MavenPublication::class.java).apply {
             this as MavenPublicationInternal
@@ -76,27 +84,24 @@ class AndroidLibraryComponentsPlugin
             }
             from(rootComponent)
           }
-          rootComponent.variantComponents.all { variantComponent ->
-            maybeCreate(variantComponent.name, MavenPublication::class.java).apply {
-              this as MavenPublicationInternal
-              mavenProjectIdentity.apply {
-                groupId.set(project.provider {
-                  variantComponent.coordinates.group
-                })
-                artifactId.set(project.provider {
-                  variantComponent.coordinates.name
-                })
-                version.set(project.provider {
-                  variantComponent.coordinates.version
-                })
-              }
-              from(variantComponent)
-              publishWithOriginalFileName()
-              if (componentFactory.componentsExtension.publishSources)
-              //TODO remove get when publish api gets lazy support
-                artifact(variantComponent.sourcesTask.get())
+          rootComponent.variantComponents.all(object : Action<LibraryVariantComponent> {
+            override fun execute(variantComponent: LibraryVariantComponent) {
+              register(variantComponent.name, MavenPublication::class.java, object : Action<MavenPublication> {
+                override fun execute(publication: MavenPublication) {
+                  (publication as MavenPublicationInternal).apply {
+                    groupId = variantComponent.coordinates.group
+                    artifactId = variantComponent.coordinates.name
+                    version = variantComponent.coordinates.version
+                    from(variantComponent)
+                    publishWithOriginalFileName()
+                    if (componentFactory.componentsExtension.publishSources)
+                      //Manually wrap with lazy publish artifact since the artifact method can't take a TaskProvider yet.
+                      artifact(LazyPublishArtifact(variantComponent.sourcesTask))
+                  }
+                }
+              })
             }
-          }
+          })
         }
       }
     }

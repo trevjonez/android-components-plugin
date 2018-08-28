@@ -28,21 +28,21 @@ class AndroidComponentsPlugin
 ) : Plugin<Project> {
 
   override fun apply(project: Project) {
-    project.pluginManager.withPlugin("com.android.library") { _ ->
+    project.pluginManager.withPlugin("com.android.library") {
       addExtension(project)
       project.pluginManager.apply(AndroidLibraryComponentsPlugin::class.java)
     }
-    project.pluginManager.withPlugin("com.android.application") { _ ->
+    project.pluginManager.withPlugin("com.android.application") {
       addExtension(project)
       TODO()
     }
-    project.pluginManager.withPlugin("com.android.test") { _ ->
+    project.pluginManager.withPlugin("com.android.test") {
       addExtension(project)
       TODO()
     }
     project.afterEvaluate {
-      it.extensions.findByType(AndroidComponentsExtension::class.java)
-          ?: throw IllegalStateException("No valid android plugin found on project: ${it.path}")
+      extensions.findByType(AndroidComponentsExtension::class.java)
+          ?: throw IllegalStateException("No valid android plugin found on project: $path")
     }
   }
 

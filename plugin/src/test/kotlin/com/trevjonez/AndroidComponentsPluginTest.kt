@@ -36,7 +36,7 @@ internal class AndroidComponentsPluginTest {
           .withProjectDir(dir)
           .forwardOutput()
           .withPluginClasspath()
-          .withGradleVersion("4.10-rc-3")
+          .withGradleVersion("4.10")
 
   @BeforeEach
   internal fun setUp() {
@@ -310,13 +310,17 @@ internal class AndroidComponentsPluginTest {
     assertThat(buildResult.task(":assemble")!!.outcome)
         .isEqualTo(TaskOutcome.SUCCESS)
 
-    assertThat(buildResult.output).contains("""
+    assertThat(buildResult.output).apply {
+
+      contains("""
         |blueDebugCompileClasspath - Resolved configuration for compilation for variant: blueDebug
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_blue_debug:0.1.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |blueDebugRuntimeClasspath - Resolved configuration for runtime for variant: blueDebug
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_blue_debug:0.1.0
@@ -324,13 +328,17 @@ internal class AndroidComponentsPluginTest {
         |          |    \--- com.squareup.okio:okio:1.14.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |blueReleaseCompileClasspath - Resolved configuration for compilation for variant: blueRelease
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_blue_release:0.1.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |blueReleaseRuntimeClasspath - Resolved configuration for runtime for variant: blueRelease
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_blue_release:0.1.0
@@ -338,16 +346,22 @@ internal class AndroidComponentsPluginTest {
         |          |    \--- com.squareup.okio:okio:1.14.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |implementation - Implementation only dependencies for 'main' sources. (n)
         |\--- com.trevjonez:and-lib:0.1.0 (n)
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |redDebugCompileClasspath - Resolved configuration for compilation for variant: redDebug
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_red_debug:0.1.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |redDebugRuntimeClasspath - Resolved configuration for runtime for variant: redDebug
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_red_debug:0.1.0
@@ -355,13 +369,17 @@ internal class AndroidComponentsPluginTest {
         |          |    \--- com.squareup.okio:okio:1.14.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |redReleaseCompileClasspath - Resolved configuration for compilation for variant: redRelease
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_red_release:0.1.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |redReleaseRuntimeClasspath - Resolved configuration for runtime for variant: redRelease
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_red_release:0.1.0
@@ -370,6 +388,7 @@ internal class AndroidComponentsPluginTest {
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
     """.trimMargin())
+    }
   }
 
   @Test
@@ -382,13 +401,17 @@ internal class AndroidComponentsPluginTest {
         .withArguments("-b", "build-flavors-many.gradle.kts", "-c", "settings-metadata.gradle.kts", "assemble", "dependencies", "--stacktrace")
         .build()
 
-    assertThat(buildResult.output).contains("""
+    assertThat(buildResult.output).apply {
+
+      contains("""
         |blueCircleDebugCompileClasspath - Resolved configuration for compilation for variant: blueCircleDebug
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_blue_circle_debug:0.1.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |blueCircleDebugRuntimeClasspath - Resolved configuration for runtime for variant: blueCircleDebug
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_blue_circle_debug:0.1.0
@@ -396,13 +419,17 @@ internal class AndroidComponentsPluginTest {
         |          |    \--- com.squareup.okio:okio:1.14.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |blueCircleReleaseCompileClasspath - Resolved configuration for compilation for variant: blueCircleRelease
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_blue_circle_release:0.1.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |blueCircleReleaseRuntimeClasspath - Resolved configuration for runtime for variant: blueCircleRelease
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_blue_circle_release:0.1.0
@@ -410,13 +437,17 @@ internal class AndroidComponentsPluginTest {
         |          |    \--- com.squareup.okio:okio:1.14.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |blueSquareDebugCompileClasspath - Resolved configuration for compilation for variant: blueSquareDebug
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_blue_square_debug:0.1.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |blueSquareDebugRuntimeClasspath - Resolved configuration for runtime for variant: blueSquareDebug
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_blue_square_debug:0.1.0
@@ -424,13 +455,17 @@ internal class AndroidComponentsPluginTest {
         |          |    \--- com.squareup.okio:okio:1.14.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |blueSquareReleaseCompileClasspath - Resolved configuration for compilation for variant: blueSquareRelease
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_blue_square_release:0.1.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |blueSquareReleaseRuntimeClasspath - Resolved configuration for runtime for variant: blueSquareRelease
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_blue_square_release:0.1.0
@@ -438,13 +473,17 @@ internal class AndroidComponentsPluginTest {
         |          |    \--- com.squareup.okio:okio:1.14.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |redCircleDebugCompileClasspath - Resolved configuration for compilation for variant: redCircleDebug
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_red_circle_debug:0.1.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |redCircleDebugRuntimeClasspath - Resolved configuration for runtime for variant: redCircleDebug
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_red_circle_debug:0.1.0
@@ -452,13 +491,17 @@ internal class AndroidComponentsPluginTest {
         |          |    \--- com.squareup.okio:okio:1.14.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |redCircleReleaseCompileClasspath - Resolved configuration for compilation for variant: redCircleRelease
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_red_circle_release:0.1.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |redCircleReleaseRuntimeClasspath - Resolved configuration for runtime for variant: redCircleRelease
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_red_circle_release:0.1.0
@@ -466,13 +509,17 @@ internal class AndroidComponentsPluginTest {
         |          |    \--- com.squareup.okio:okio:1.14.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |redSquareDebugCompileClasspath - Resolved configuration for compilation for variant: redSquareDebug
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_red_square_debug:0.1.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |redSquareDebugRuntimeClasspath - Resolved configuration for runtime for variant: redSquareDebug
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_red_square_debug:0.1.0
@@ -480,13 +527,17 @@ internal class AndroidComponentsPluginTest {
         |          |    \--- com.squareup.okio:okio:1.14.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |redSquareReleaseCompileClasspath - Resolved configuration for compilation for variant: redSquareRelease
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_red_square_release:0.1.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |redSquareReleaseRuntimeClasspath - Resolved configuration for runtime for variant: redSquareRelease
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_red_square_release:0.1.0
@@ -495,6 +546,7 @@ internal class AndroidComponentsPluginTest {
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
     """.trimMargin())
+    }
   }
 }
 
