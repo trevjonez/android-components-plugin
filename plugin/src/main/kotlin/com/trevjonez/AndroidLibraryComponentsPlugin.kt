@@ -86,20 +86,16 @@ class AndroidLibraryComponentsPlugin
           }
           rootComponent.variantComponents.all(object : Action<LibraryVariantComponent> {
             override fun execute(variantComponent: LibraryVariantComponent) {
-              register(variantComponent.name, MavenPublication::class.java, object : Action<MavenPublication> {
-                override fun execute(publication: MavenPublication) {
-                  (publication as MavenPublicationInternal).apply {
-                    groupId = variantComponent.coordinates.group
-                    artifactId = variantComponent.coordinates.name
-                    version = variantComponent.coordinates.version
-                    from(variantComponent)
-                    publishWithOriginalFileName()
-                    if (componentFactory.componentsExtension.publishSources)
-                      //Manually wrap with lazy publish artifact since the artifact method can't take a TaskProvider yet.
-                      artifact(LazyPublishArtifact(variantComponent.sourcesTask))
-                  }
-                }
-              })
+              register(variantComponent.name, MavenPublication::class.java) {
+                (this as MavenPublicationInternal)
+                groupId = variantComponent.coordinates.group
+                artifactId = variantComponent.coordinates.name
+                version = variantComponent.coordinates.version
+                from(variantComponent)
+                publishWithOriginalFileName()
+                if (componentFactory.componentsExtension.publishSources)
+                  artifact(LazyPublishArtifact(variantComponent.sourcesTask))
+              }
             }
           })
         }
