@@ -73,20 +73,18 @@ class AndroidLibraryComponentsPlugin
   private fun registerComponentsWithMavenPublishPlugin() {
     project.pluginManager.withPlugin("maven-publish") {
       project.extensions.configure(PublishingExtension::class.java) {
-        publications.apply {
-          val androidExists = findByName("android") != null
-          maybeCreate("android", MavenPublication::class.java).apply {
+        publications {
+          register("android", MavenPublication::class.java) {
             this as MavenPublicationInternal
-            if (!androidExists) {
-              mavenProjectIdentity.artifactId.set(
-                  componentFactory.baseNameProvider
-              )
-            }
+            mavenProjectIdentity.artifactId.set(
+                componentFactory.baseNameProvider
+            )
             from(rootComponent)
           }
           rootComponent.variantComponents.all(object : Action<LibraryVariantComponent> {
             override fun execute(variantComponent: LibraryVariantComponent) {
               register(variantComponent.name, MavenPublication::class.java) {
+                println("configuring publication artifact ${variantComponent.name}")
                 (this as MavenPublicationInternal)
                 groupId = variantComponent.coordinates.group
                 artifactId = variantComponent.coordinates.name
