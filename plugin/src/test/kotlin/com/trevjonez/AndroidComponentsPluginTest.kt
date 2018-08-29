@@ -20,7 +20,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.SoftAssertions
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.io.File
 import kotlin.properties.ReadOnlyProperty
@@ -28,33 +27,40 @@ import kotlin.reflect.KProperty
 
 internal class AndroidComponentsPluginTest {
 
-  val buildDir by systemProperty { File(it) }
-  val testLibDir by systemProperty { File(it) }
-  val testAppDir by systemProperty { File(it) }
+  private val buildDir by systemProperty { File(it) }
+  private val testLibDir by systemProperty { File(it) }
+  private val testAppDir by systemProperty { File(it) }
 
-  private fun runner(dir: File) =
-      GradleRunner.create()
-          .withProjectDir(dir)
-          .forwardOutput()
-          .withPluginClasspath()
-          .withGradleVersion("4.10")
+  private fun runner(src: File, dest: File): GradleRunner {
+    dest.deleteRecursively()
+    src.copyRecursively(dest)
 
-  @BeforeEach
-  internal fun setUp() {
-    File(testLibDir, "build").deleteRecursively()
-    File(testAppDir, "build").deleteRecursively()
+    return GradleRunner.create()
+        .withProjectDir(dest)
+        .forwardOutput()
+        .withPluginClasspath()
   }
+
+  private fun testDir(testDir: String) = File(buildDir, "tests/$testDir")
+
+  private val File.andLib: File
+    get() = File(this, "and-lib")
+
+  private val File.andApp: File
+    get() = File(this, "and-app")
 
   @Test
   internal fun `lib can publish build type variants as expected`() {
-    val buildResult = runner(testLibDir)
+    val testDir = testDir("basicPublish")
+    val libDir = testDir.andLib
+    val buildResult = runner(testLibDir, libDir)
         .withArguments("publish", "--stacktrace")
         .build()
 
     assertThat(buildResult.task(":publish")!!.outcome)
         .isEqualTo(TaskOutcome.SUCCESS)
 
-    assertThat(File(testLibDir, "build/.m2/com/trevjonez/")).satisfies { m2Root ->
+    assertThat(File(libDir, "build/.m2/com/trevjonez/")).satisfies { m2Root ->
       SoftAssertions().also { softly ->
         softly.assertThat(File(m2Root, "and-lib/0.1.0/and-lib-0.1.0.module")).exists()
         softly.assertThat(File(m2Root, "and-lib/0.1.0/and-lib-0.1.0.pom")).exists()
@@ -73,14 +79,16 @@ internal class AndroidComponentsPluginTest {
 
   @Test
   internal fun `lib can specify artifact id and not be overwritten`() {
-    val buildResult = runner(testLibDir)
+    val testDir = testDir("customArtifactId")
+    val libDir = testDir.andLib
+    val buildResult = runner(testLibDir, libDir)
         .withArguments("-b", "build-id-spec.gradle.kts", "publish", "--stacktrace")
         .build()
 
     assertThat(buildResult.task(":publish")!!.outcome)
         .isEqualTo(TaskOutcome.SUCCESS)
 
-    assertThat(File(testLibDir, "build/.m2/com/trevjonez")).satisfies { m2Root ->
+    assertThat(File(libDir, "build/.m2/com/trevjonez")).satisfies { m2Root ->
       SoftAssertions().also { softly ->
         softly.assertThat(File(m2Root, "artId/0.1.0/artId-0.1.0.module")).exists()
         softly.assertThat(File(m2Root, "artId/0.1.0/artId-0.1.0.pom")).exists()
@@ -99,14 +107,16 @@ internal class AndroidComponentsPluginTest {
 
   @Test
   internal fun `lib can publish build type and single flavor dimension variants as expected`() {
-    val buildResult = runner(testLibDir)
+    val testDir = testDir("singleVariantPublishing")
+    val libDir = testDir.andLib
+    val buildResult = runner(testLibDir, libDir)
         .withArguments("-b", "build-flavors.gradle.kts", "publish", "--stacktrace")
         .build()
 
     assertThat(buildResult.task(":publish")!!.outcome)
         .isEqualTo(TaskOutcome.SUCCESS)
 
-    assertThat(File(testLibDir, "build/.m2/com/trevjonez/")).satisfies { m2Root ->
+    assertThat(File(libDir, "build/.m2/com/trevjonez/")).satisfies { m2Root ->
       SoftAssertions().also { softly ->
         softly.assertThat(File(m2Root, "and-lib/0.1.0/and-lib-0.1.0.module")).exists()
         softly.assertThat(File(m2Root, "and-lib/0.1.0/and-lib-0.1.0.pom")).exists()
@@ -139,14 +149,16 @@ internal class AndroidComponentsPluginTest {
 
   @Test
   internal fun `lib can publish build type and single flavor dimension variants without sources`() {
-    val buildResult = runner(testLibDir)
+    val testDir = testDir("disableSourcePublishing")
+    val libDir = testDir.andLib
+    val buildResult = runner(testLibDir, libDir)
         .withArguments("-b", "build-flavors-no-source.gradle.kts", "publish", "--stacktrace")
         .build()
 
     assertThat(buildResult.task(":publish")!!.outcome)
         .isEqualTo(TaskOutcome.SUCCESS)
 
-    assertThat(File(testLibDir, "build/.m2/com/trevjonez/")).satisfies { m2Root ->
+    assertThat(File(libDir, "build/.m2/com/trevjonez/")).satisfies { m2Root ->
       SoftAssertions().also { softly ->
         softly.assertThat(File(m2Root, "and-lib/0.1.0/and-lib-0.1.0.module")).exists()
         softly.assertThat(File(m2Root, "and-lib/0.1.0/and-lib-0.1.0.pom")).exists()
@@ -178,11 +190,14 @@ internal class AndroidComponentsPluginTest {
 
   @Test
   internal fun `app can consume lib via redirecting pom`() {
-    runner(testLibDir)
+    val testDir = testDir("pomLib")
+    val libDir = testDir.andLib
+    runner(testLibDir, libDir)
         .withArguments("publish", "--stacktrace")
         .build()
 
-    val buildResult = runner(testAppDir)
+    val appDir = testDir.andApp
+    val buildResult = runner(testAppDir, appDir)
         .withArguments("dependencies", "assemble", "--stacktrace")
         .build()
 
@@ -192,24 +207,31 @@ internal class AndroidComponentsPluginTest {
 
   @Test
   internal fun `app can consume lib via module metadata`() {
-    runner(testLibDir)
+    val testDir = testDir("basicMetaConsumptionLib")
+    val libDir = testDir.andLib
+    runner(testLibDir, libDir)
         .withArguments("publish", "--stacktrace")
         .build()
 
-    val buildResult = runner(testAppDir)
+    val appDir = testDir.andApp
+    val buildResult = runner(testAppDir, appDir)
         .withArguments("-c", "settings-metadata.gradle.kts", "dependencies", "assemble", "--stacktrace")
         .build()
 
     assertThat(buildResult.task(":assemble")!!.outcome)
         .isEqualTo(TaskOutcome.SUCCESS)
 
-    assertThat(buildResult.output).contains("""
+    assertThat(buildResult.output).apply {
+
+      contains("""
         |debugCompileClasspath - Resolved configuration for compilation for variant: debug
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_debug:0.1.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |debugRuntimeClasspath - Resolved configuration for runtime for variant: debug
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_debug:0.1.0
@@ -217,16 +239,22 @@ internal class AndroidComponentsPluginTest {
         |          |    \--- com.squareup.okio:okio:1.14.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |implementation - Implementation only dependencies for 'main' sources. (n)
         |\--- com.trevjonez:and-lib:0.1.0 (n)
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |releaseCompileClasspath - Resolved configuration for compilation for variant: release
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_release:0.1.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |releaseRuntimeClasspath - Resolved configuration for runtime for variant: release
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_release:0.1.0
@@ -235,15 +263,19 @@ internal class AndroidComponentsPluginTest {
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
     """.trimMargin())
+    }
   }
 
   @Test
   internal fun `app can consume single flavor dimension variants lib via redirecting pom`() {
-    runner(testLibDir)
+    val testDir = testDir("singleVariantPomLib")
+    val libDir = testDir.andLib
+    runner(testLibDir, libDir)
         .withArguments("-b", "build-flavors.gradle.kts", "publish", "--stacktrace")
         .build()
 
-    val buildResult = runner(testAppDir)
+    val appDir = testDir.andApp
+    val buildResult = runner(testAppDir, appDir)
         .withArguments("assemble", "--stacktrace")
         .build()
 
@@ -253,24 +285,32 @@ internal class AndroidComponentsPluginTest {
 
   @Test
   internal fun `app can consume single flavor dimension variants lib via module metadata`() {
-    runner(testLibDir)
+    val testDir = testDir("singleVariantMetaLib")
+    val libDir = testDir.andLib
+    runner(testLibDir, libDir)
         .withArguments("-b", "build-flavors.gradle.kts", "publish", "--stacktrace")
         .build()
 
-    val buildResult = runner(testAppDir)
+    val appDir = testDir.andApp
+    val buildResult = runner(testAppDir, appDir)
         .withArguments("-c", "settings-metadata.gradle.kts", "dependencies", "assemble", "--stacktrace")
         .build()
 
     assertThat(buildResult.task(":assemble")!!.outcome)
         .isEqualTo(TaskOutcome.SUCCESS)
 
-    assertThat(buildResult.output).contains("""
+    assertThat(buildResult.output).apply {
+
+
+      contains("""
         |debugCompileClasspath - Resolved configuration for compilation for variant: debug
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_blue_debug:0.1.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |debugRuntimeClasspath - Resolved configuration for runtime for variant: debug
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_blue_debug:0.1.0
@@ -278,16 +318,22 @@ internal class AndroidComponentsPluginTest {
         |          |    \--- com.squareup.okio:okio:1.14.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |implementation - Implementation only dependencies for 'main' sources. (n)
         |\--- com.trevjonez:and-lib:0.1.0 (n)
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |releaseCompileClasspath - Resolved configuration for compilation for variant: release
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_blue_release:0.1.0
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
-    """.trimMargin()).contains("""
+    """.trimMargin())
+
+      contains("""
         |releaseRuntimeClasspath - Resolved configuration for runtime for variant: release
         |\--- com.trevjonez:and-lib:0.1.0
         |     \--- com.trevjonez:and-lib_blue_release:0.1.0
@@ -296,15 +342,19 @@ internal class AndroidComponentsPluginTest {
         |          \--- io.reactivex.rxjava2:rxjava:2.2.0
         |               \--- org.reactivestreams:reactive-streams:1.0.2
     """.trimMargin())
+    }
   }
 
   @Test
   internal fun `app with single flavor dimension variants can consume single flavor dimension variants lib via module metadata`() {
-    runner(testLibDir)
+    val testDir = testDir("singleVariantPublishingConsumptionLib")
+    val libDir = testDir.andLib
+    runner(testLibDir, libDir)
         .withArguments("-b", "build-flavors.gradle.kts", "publish", "--stacktrace")
         .build()
 
-    val buildResult = runner(testAppDir)
+    val appDir = testDir.andApp
+    val buildResult = runner(testAppDir, appDir)
         .withArguments("-b", "build-flavors.gradle.kts", "-c", "settings-metadata.gradle.kts", "dependencies", "assemble", "--stacktrace")
         .build()
 
@@ -394,11 +444,14 @@ internal class AndroidComponentsPluginTest {
 
   @Test
   internal fun `app with multi flavor dimension variants can consume multi flavor dimension variants lib via module metadata`() {
-    runner(testLibDir)
+    val testDir = testDir("multiVariantPublishingLib")
+    val libDir = testDir.andLib
+    runner(testLibDir, libDir)
         .withArguments("-b", "build-flavors-many.gradle.kts", "publish", "--stacktrace")
         .build()
 
-    val buildResult = runner(testAppDir)
+    val appDir = testDir.andApp
+    val buildResult = runner(testAppDir, appDir)
         .withArguments("-b", "build-flavors-many.gradle.kts", "-c", "settings-metadata.gradle.kts", "assemble", "dependencies", "--stacktrace")
         .build()
 
