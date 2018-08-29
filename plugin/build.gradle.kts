@@ -40,6 +40,7 @@ tasks.named("test").configure {
   this as Test
   useJUnitPlatform()
 
+  systemProperty("buildDir", buildDir.absolutePath)
   systemProperty("testLibDir", "${rootDir.absolutePath}/and-lib")
   systemProperty("testAppDir", "${rootDir.absolutePath}/and-app")
   systemProperty("org.gradle.testkit.debug", false)

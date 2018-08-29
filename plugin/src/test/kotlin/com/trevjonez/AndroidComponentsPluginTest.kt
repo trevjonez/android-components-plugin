@@ -28,6 +28,7 @@ import kotlin.reflect.KProperty
 
 internal class AndroidComponentsPluginTest {
 
+  val buildDir by systemProperty { File(it) }
   val testLibDir by systemProperty { File(it) }
   val testAppDir by systemProperty { File(it) }
 
