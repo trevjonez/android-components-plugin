@@ -14,10 +14,10 @@
  *    limitations under the License.
  */
 
-package com.trevjonez.internal
+package com.trevjonez.acp.internal
 
 import com.android.build.gradle.api.BaseVariant
-import com.trevjonez.internal.usage.DefaultVariantForwardingUsage
+import com.trevjonez.acp.internal.usage.DefaultVariantForwardingUsage
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.attributes.Usage
@@ -28,7 +28,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule
 import org.gradle.api.internal.component.UsageContext
 import kotlin.LazyThreadSafetyMode.*
 
-class AndroidComponent<VC : AndroidVariantComponent>(
+internal class AndroidComponent<VC : AndroidVariantComponent>(
     val variantComponents: DomainObjectSet<VC>,
     override val compFactory: BaseComponentFactory<VC, *>
 ) : ComponentWithVariants, AndroidVariantComponent {

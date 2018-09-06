@@ -15,9 +15,9 @@
  */
 
 plugins {
-  id("android-components")
-  id("com.android.library")
   `maven-publish`
+  id("com.android.library")
+  id("com.trevjonez.android-components")
 }
 
 group = "com.trevjonez"

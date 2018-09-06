@@ -14,10 +14,10 @@
  *    limitations under the License.
  */
 
-package com.trevjonez.internal
+package com.trevjonez.acp.internal
 
 import com.android.build.gradle.api.BaseVariant
-import com.trevjonez.AndroidComponentsExtension
+import com.trevjonez.acp.AndroidComponentsExtension
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleVersionIdentifier
@@ -26,7 +26,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.provider.Provider
 
-abstract class BaseComponentFactory<C : AndroidVariantComponent, V : BaseVariant>(
+internal abstract class BaseComponentFactory<C : AndroidVariantComponent, V : BaseVariant>(
     val project: Project,
     val attributesFactory: ImmutableAttributesFactory
 ) {

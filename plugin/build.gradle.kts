@@ -30,8 +30,8 @@ plugins {
 gradlePlugin {
   plugins {
     create("android-components") {
-      id = name
-      implementationClass = "com.trevjonez.AndroidComponentsPlugin"
+      id = "com.trevjonez.android-components"
+      implementationClass = "com.trevjonez.acp.AndroidComponentsPlugin"
     }
   }
 }

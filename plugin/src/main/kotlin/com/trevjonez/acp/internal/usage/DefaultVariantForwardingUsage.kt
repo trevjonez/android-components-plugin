@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package com.trevjonez.internal.usage
+package com.trevjonez.acp.internal.usage
 
-import com.trevjonez.internal.from
+import com.trevjonez.acp.internal.from
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.ModuleDependency
@@ -27,7 +27,7 @@ import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.provider.Provider
 
-class DefaultVariantForwardingUsage(
+internal class DefaultVariantForwardingUsage(
     private val redirectDependency: ModuleDependency,
     private val attributes: Provider<AttributeContainer>
 ) : UsageContext {

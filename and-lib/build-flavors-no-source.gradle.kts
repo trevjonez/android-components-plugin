@@ -31,7 +31,7 @@
  */
 
 plugins {
-  id("android-components")
+  id("com.trevjonez.android-components")
   id("com.android.library")
   `maven-publish`
 }

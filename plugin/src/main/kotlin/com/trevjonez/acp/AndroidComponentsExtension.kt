@@ -14,17 +14,32 @@
  *    limitations under the License.
  */
 
-package com.trevjonez.internal
+package com.trevjonez.acp
 
-import com.android.build.gradle.api.BaseVariant
-import org.gradle.api.component.PublishableComponent
-import org.gradle.api.internal.component.SoftwareComponentInternal
-import org.gradle.language.ComponentWithOutputs
+open class AndroidComponentsExtension {
 
-interface AndroidVariantComponent :
-    ComponentWithOutputs,
-    PublishableComponent,
-    SoftwareComponentInternal {
-  val variant: BaseVariant
-  val compFactory: BaseComponentFactory<*, *>
+  /**
+   * Optional artifact id override. a null value will be interpreted as
+   * a reference to `project.name`.
+   */
+  var artifactId: String? = null
+
+  /**
+   * If source jar tasks and artifacts should be registered.
+   */
+  var publishSources = true
+
+  /**
+   * Groovy dsl
+   */
+  fun artifactId(id: String?) {
+    artifactId = id
+  }
+
+  /**
+   * Groovy dsl
+   */
+  fun publishSources(enabled: Boolean) {
+    publishSources = enabled
+  }
 }

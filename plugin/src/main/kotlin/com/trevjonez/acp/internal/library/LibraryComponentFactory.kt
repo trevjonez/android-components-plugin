@@ -14,23 +14,20 @@
  *    limitations under the License.
  */
 
-package com.trevjonez.internal.library
+package com.trevjonez.acp.internal.library
 
 import com.android.build.gradle.LibraryExtension
 import com.android.build.gradle.api.LibraryVariant
-import com.trevjonez.internal.AndroidComponent
-import com.trevjonez.internal.BaseComponentFactory
+import com.trevjonez.acp.internal.AndroidComponent
+import com.trevjonez.acp.internal.BaseComponentFactory
 import org.gradle.api.Project
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.api.tasks.javadoc.Javadoc
-import org.gradle.external.javadoc.StandardJavadocDocletOptions
 import org.gradle.jvm.tasks.Jar
-import java.io.File
 
-class LibraryComponentFactory(
+internal class LibraryComponentFactory(
     project: Project,
     attributesFactory: ImmutableAttributesFactory,
     val libraryExtension: LibraryExtension

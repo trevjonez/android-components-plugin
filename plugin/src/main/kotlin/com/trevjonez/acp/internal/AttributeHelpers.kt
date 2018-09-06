@@ -14,14 +14,14 @@
  *    limitations under the License.
  */
 
-package com.trevjonez.internal
+package com.trevjonez.acp.internal
 
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 
 
 @Suppress("UNCHECKED_CAST")
-fun AttributeContainer.addAll(
+internal fun AttributeContainer.addAll(
     attributes: AttributeContainer
 ): AttributeContainer = apply {
   attributes.keySet().forEach {
@@ -30,5 +30,5 @@ fun AttributeContainer.addAll(
   }
 }
 
-inline infix fun <reified T> Attribute<T>.from(container: AttributeContainer): T =
+internal inline infix fun <reified T> Attribute<T>.from(container: AttributeContainer): T =
     T::class.java.cast(container.getAttribute(this))

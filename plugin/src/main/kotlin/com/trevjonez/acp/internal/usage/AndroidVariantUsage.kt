@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package com.trevjonez.internal.usage
+package com.trevjonez.acp.internal.usage
 
-import com.trevjonez.internal.from
+import com.trevjonez.acp.internal.from
 import org.gradle.api.artifacts.*
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.attributes.Usage
@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.provider.Provider
 
-class AndroidVariantUsage(
+internal class AndroidVariantUsage(
     private val variantName: String,
     private val configType: String,
     private val config: Configuration,
@@ -39,7 +39,7 @@ class AndroidVariantUsage(
   override fun getArtifacts(): Set<PublishArtifact> =
       artifacts.get()
 
-  //TODO auto convert project into artifact?
+  //TODO https://github.com/trevjonez/android-components-plugin/issues/7
   override fun getDependencies(): Set<ModuleDependency> =
       config.incoming.dependencies.withType(ModuleDependency::class.java)
 

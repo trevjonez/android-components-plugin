@@ -14,12 +14,12 @@
  *    limitations under the License.
  */
 
-package com.trevjonez.internal.library
+package com.trevjonez.acp.internal.library
 
 import com.android.build.gradle.api.LibraryVariant
-import com.trevjonez.internal.AndroidVariantComponent
-import com.trevjonez.internal.addAll
-import com.trevjonez.internal.usage.AndroidVariantUsage
+import com.trevjonez.acp.internal.AndroidVariantComponent
+import com.trevjonez.acp.internal.addAll
+import com.trevjonez.acp.internal.usage.AndroidVariantUsage
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.attributes.Usage.*
@@ -31,7 +31,7 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.jvm.internal.resolve.LibraryPublishArtifact
 
-class LibraryVariantComponent(
+internal class LibraryVariantComponent(
     override val variant: LibraryVariant,
     override val compFactory: LibraryComponentFactory,
     val sourcesTask: TaskProvider<out AbstractArchiveTask>

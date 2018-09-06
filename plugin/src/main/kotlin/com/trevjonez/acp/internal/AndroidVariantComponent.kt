@@ -14,17 +14,17 @@
  *    limitations under the License.
  */
 
-package com.trevjonez
+package com.trevjonez.acp.internal
 
-open class AndroidComponentsExtension {
-  var artifactId: String? = null
-  var publishSources = true
+import com.android.build.gradle.api.BaseVariant
+import org.gradle.api.component.PublishableComponent
+import org.gradle.api.internal.component.SoftwareComponentInternal
+import org.gradle.language.ComponentWithOutputs
 
-  fun artifactId(id: String?) {
-    artifactId = id
-  }
-
-  fun publishSources(enabled: Boolean) {
-    publishSources = enabled
-  }
+internal interface AndroidVariantComponent :
+    ComponentWithOutputs,
+    PublishableComponent,
+    SoftwareComponentInternal {
+  val variant: BaseVariant
+  val compFactory: BaseComponentFactory<*, *>
 }

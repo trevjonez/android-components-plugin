@@ -14,13 +14,10 @@
  *    limitations under the License.
  */
 
-package com.trevjonez
+package com.trevjonez.acp.internal.plugins
 
 import com.android.build.gradle.LibraryExtension
-import com.android.build.gradle.api.LibraryVariant
-import com.trevjonez.internal.library.LibraryComponentFactory
-import com.trevjonez.internal.library.LibraryVariantComponent
-import org.gradle.api.Action
+import com.trevjonez.acp.internal.library.LibraryComponentFactory
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact
@@ -31,7 +28,7 @@ import org.gradle.api.publish.maven.internal.publication.MavenPublicationInterna
 import javax.inject.Inject
 import kotlin.LazyThreadSafetyMode.NONE
 
-class AndroidLibraryComponentsPlugin
+internal class AndroidLibraryComponentsPlugin
 @Inject constructor(
     private val attributesFactory: ImmutableAttributesFactory
 ) : Plugin<Project> {
@@ -40,7 +37,7 @@ class AndroidLibraryComponentsPlugin
 
   private val libExtension by lazy(NONE) {
     project.extensions.findByType(LibraryExtension::class.java)
-        ?: throw NullPointerException("Do not apply ${javaClass.simpleName} directly. Use \"android-components\"")
+        ?: throw NullPointerException("Do not apply ${javaClass.simpleName} directly.")
   }
 
   private val componentFactory by lazy(NONE) {
@@ -54,14 +51,10 @@ class AndroidLibraryComponentsPlugin
   override fun apply(target: Project) {
     project = target
 
-    @Suppress("ObjectLiteralToLambda")
-    libExtension.libraryVariants.all(object : Action<LibraryVariant> {
-      override fun execute(variant: LibraryVariant) {
-        rootComponent.variantComponents.add(
-            componentFactory.variantComponent(variant)
-        )
-      }
-    })
+    libExtension.libraryVariants.all {
+      val variantComponent = componentFactory.variantComponent(this)
+      rootComponent.variantComponents.add(variantComponent)
+    }
 
     project.components.add(rootComponent)
     project.components.addAll(rootComponent.variantComponents)
@@ -69,7 +62,6 @@ class AndroidLibraryComponentsPlugin
     registerComponentsWithMavenPublishPlugin()
   }
 
-  @Suppress("ObjectLiteralToLambda")
   private fun registerComponentsWithMavenPublishPlugin() {
     project.pluginManager.withPlugin("maven-publish") {
       project.extensions.configure(PublishingExtension::class.java) {
@@ -81,21 +73,20 @@ class AndroidLibraryComponentsPlugin
             )
             from(rootComponent)
           }
-          rootComponent.variantComponents.all(object : Action<LibraryVariantComponent> {
-            override fun execute(variantComponent: LibraryVariantComponent) {
-              register(variantComponent.name, MavenPublication::class.java) {
-                println("configuring publication artifact ${variantComponent.name}")
-                (this as MavenPublicationInternal)
-                groupId = variantComponent.coordinates.group
-                artifactId = variantComponent.coordinates.name
-                version = variantComponent.coordinates.version
-                from(variantComponent)
-                publishWithOriginalFileName()
-                if (componentFactory.componentsExtension.publishSources)
-                  artifact(LazyPublishArtifact(variantComponent.sourcesTask))
-              }
+          rootComponent.variantComponents.all {
+            val variantComponent = this
+            register(name, MavenPublication::class.java) {
+              (this as MavenPublicationInternal)
+              println("configuring publication artifact $name")
+              groupId = variantComponent.coordinates.group
+              artifactId = variantComponent.coordinates.name
+              version = variantComponent.coordinates.version
+              from(variantComponent)
+              publishWithOriginalFileName()
+              if (componentFactory.componentsExtension.publishSources)
+                artifact(LazyPublishArtifact(sourcesTask))
             }
-          })
+          }
         }
       }
     }

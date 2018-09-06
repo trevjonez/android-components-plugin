@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.trevjonez
+package com.trevjonez.acp
 
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.SoftAssertions
