@@ -25,21 +25,9 @@ open class AndroidComponentsExtension {
   var artifactId: String? = null
 
   /**
-   * If source jar tasks and artifacts should be registered.
-   */
-  var publishSources = true
-
-  /**
    * Groovy dsl
    */
   fun artifactId(id: String?) {
     artifactId = id
-  }
-
-  /**
-   * Groovy dsl
-   */
-  fun publishSources(enabled: Boolean) {
-    publishSources = enabled
   }
 }

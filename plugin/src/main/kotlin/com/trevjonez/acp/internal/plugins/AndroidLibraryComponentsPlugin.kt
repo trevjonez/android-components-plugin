@@ -73,18 +73,21 @@ internal class AndroidLibraryComponentsPlugin
             )
             from(rootComponent)
           }
+
           rootComponent.variantComponents.all {
             val variantComponent = this
             register(name, MavenPublication::class.java) {
               (this as MavenPublicationInternal)
-              println("configuring publication artifact $name")
+
               groupId = variantComponent.coordinates.group
               artifactId = variantComponent.coordinates.name
               version = variantComponent.coordinates.version
+
               from(variantComponent)
               publishWithOriginalFileName()
-              if (componentFactory.componentsExtension.publishSources)
-                artifact(LazyPublishArtifact(sourcesTask))
+
+              //TODO can this be implicit to variantComponent?
+              artifact(LazyPublishArtifact(sourcesTask))
             }
           }
         }

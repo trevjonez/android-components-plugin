@@ -4,22 +4,21 @@ Variant aware artifact publishing for android projects.
 
 ## Preface
 
-Gradle and the [Android Gradle Plugin(s)] (AGP) provide a variant aware 
-dependency resolution when depending on project modules directly. 
-This is lost entirely when publishing maven style artifacts via existing methods. 
-<sup>[ [1], [2], [3], [4], [5] ]</sup>
+Gradle and the [Android Gradle Plugin(s)] (AGP) provide/consume dependencies 
+in a variant aware way when depending on projects directly. The Maven [POM format] 
+does not support exposing gradle metadata to achieve the same level of itegration
+when consuming a published artifact.
 
-This plugin introduces support for the new [Gradle module metadata specification]
-which utilizes the [Gradle component API] to expose the same variant aware
-dependency resolution when depending on published artifacts. All without the 
-usual ceremony required to publish the variant artifacts and greatly simplifies 
-depending on the correct variants from downstream project configurations.
+The goal of this plugin is to provide support for the 
+[Gradle module metadata specification] as well as reduce the amount of work 
+required to setup publishing android projects. 
 
 ## Installation and Configuration
 
 The plugin is available via the [Gradle Plugin Portal]
 
 ```kotlin
+//build.gradle.kts
 plugins {
   `maven-publish`
   id("com.android.library")
@@ -37,30 +36,44 @@ publishing {
 }
 ```
 
-`android-components` ties the configuration of the applied [AGP] to configure 
-the [Maven-Publish plugin]. Publications are created for each variant that 
-passes the [AGP filtering DSL]. A sources jar task and artifact is automatically
-registered for each variant.
+`android-components` binds the configuration of the applied AGP into the 
+[Maven-Publish plugin]. This is done by creating a [SoftwareComponent] instance 
+for each variant which is registered as part of a single [ComponentWithVariants]
+that represents the entire module. By implementing [ComponentWithVariants] gradle
+will automatically produce the appropriate .module metadata file when attached to
+a publication.
 
-By default the maven coordinates are pulled from the project group, name, and version. 
+The published artifact coordinates the project group, name, and version. 
 
-Source publishing can be disabled, or primary artifact id overridden via the 
-[AndroidComponentsExtension]:
+The primary artifact id can be overridden via the [AndroidComponentsExtension]
+Project naming should be preferred over using this override.
 ```kotlin
+//build.gradle(.kts)
 androidComponents {
-  publishSources = false
   artifactId = "CustomId"
 }
 ```
+
+Android Gradle Plugin Behaviors
+
+| AGP Plugin ID            | Published Artifacts      |
+|--------------------------|--------------------------|
+|`com.android.library`     | AAR, Sources JAR         |
+|`com.android.application` | See Issue #2             |
+|`com.android.test`        | See Issue #3             |
+|`com.android.feature`     | See Issue #4             |
+|`com.android.instantapp`  | See Issue #5             |  
+|`com.android.bundle`      | See Issue #6             |  
 
 ## Artifact Consumption
 #### .module metadata
 
 In order to consume the [.module][Gradle module metadata specification] metadata
-in downstream projects we must enable it via gradle metadata feature preview in
-the settings file.
+in downstream projects `GRADLE_METADATA` must be enabled via the 
+[Settings.enableFeaturePreview] method.
 
 ```kotlin
+//settings.gradle(.kts)
 enableFeaturePreview("GRADLE_METADATA")
 ```
 
@@ -75,25 +88,43 @@ dependencies {
 
 The `android-components` plugin will also generate a redirecting POM file so the
 main artifact coordinates point to the variant that was set as the 
-[default publishing configuration on the AGP DSL]. In this way the plugin provides
-support equivalent to most other publishing/consumption options.
+[default publishing configuration on the AGP DSL].
 
-[1]: https://maven.apache.org/pom.html
-[2]: https://docs.gradle.org/current/userguide/maven_plugin.html
-[3]: https://docs.gradle.org/current/userguide/publishing_maven.html
-[4]: https://github.com/dcendents/android-maven-gradle-plugin
-[5]: https://github.com/wupdigital/android-maven-publish
+```kotlin
+dependencies {
+  //POM artifact that depends on "com.example:lib_release:1.2.3"
+  implementation("com.example:lib:1.2.3")
+}
+```
 
+or manually select variants per configuration:
+
+```kotlin
+dependencies {
+  debugImplementation("com.example:lib_debug:1.2.3")
+  releaseImplementation("com.example:lib_release:1.2.3")
+}
+```
+
+#### Troubleshooting
+
+If you are met with issues surrounding variant mismatching review the AGP DSL
+documentation for [defaultConfig.missingDimensionStrategy] as the same rules apply.
+At that point if you are still unable to resolve the problems feel free to 
+[open a new issue] to discuss further. 
+
+[POM format]: https://maven.apache.org/pom.html
 [Gradle module metadata specification]: https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-specification.md
-[Gradle component API]: https://docs.gradle.org/current/javadoc/index.html?org/gradle/api/component/package-summary.html
+[SoftwareComponent]: https://docs.gradle.org/current/javadoc/org/gradle/api/component/SoftwareComponent.html
+[ComponentWithVariants]: https://docs.gradle.org/current/javadoc/org/gradle/api/component/ComponentWithVariants.html
 [Gradle Plugin Portal]: https://plugins.gradle.org/
-[AGP]: https://developer.android.com/studio/releases/gradle-plugin
 [Android Gradle Plugin(s)]: https://developer.android.com/studio/releases/gradle-plugin
-[AGP filtering DSL]: https://google.github.io/android-gradle-dsl/current/com.android.build.gradle.LibraryExtension.html#com.android.build.gradle.LibraryExtension:variantFilter
 [Maven-Publish plugin]: https://docs.gradle.org/current/userguide/publishing_maven.html
 [default publishing configuration on the AGP DSL]: https://google.github.io/android-gradle-dsl/current/com.android.build.gradle.LibraryExtension.html#com.android.build.gradle.LibraryExtension:defaultPublishConfig
-
-[AndroidComponentsExtension]: plugin/src/main/kotlin/com/trevjonez/AndroidComponentsExtension.kt
+[defaultConfig.missingDimensionStrategy]: https://google.github.io/android-gradle-dsl/current/com.android.build.gradle.internal.dsl.DefaultConfig.html#com.android.build.gradle.internal.dsl.DefaultConfig:missingDimensionStrategy(java.lang.String,%20java.lang.String)
+[open a new issue]: https://github.com/trevjonez/android-components-plugin/issues/new
+[Settings.enableFeaturePreview]: https://docs.gradle.org/current/javadoc/org/gradle/api/initialization/Settings.html#enableFeaturePreview-java.lang.String-
+[AndroidComponentsExtension]: plugin/src/main/kotlin/com/trevjonez/acp/AndroidComponentsExtension.kt
 
 ## License
 

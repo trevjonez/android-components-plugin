@@ -146,48 +146,6 @@ internal class AndroidComponentsPluginTest {
     }
   }
 
-
-  @Test
-  internal fun `lib can publish build type and single flavor dimension variants without sources`() {
-    val testDir = testDir("disableSourcePublishing")
-    val libDir = testDir.andLib
-    val buildResult = runner(testLibDir, libDir)
-        .withArguments("-b", "build-flavors-no-source.gradle.kts", "publish", "--stacktrace")
-        .build()
-
-    assertThat(buildResult.task(":publish")!!.outcome)
-        .isEqualTo(TaskOutcome.SUCCESS)
-
-    assertThat(File(libDir, "build/.m2/com/trevjonez/")).satisfies { m2Root ->
-      SoftAssertions().also { softly ->
-        softly.assertThat(File(m2Root, "and-lib/0.1.0/and-lib-0.1.0.module")).exists()
-        softly.assertThat(File(m2Root, "and-lib/0.1.0/and-lib-0.1.0.pom")).exists()
-        softly.assertThat(File(m2Root, "and-lib/0.1.0/and-lib-0.1.0.aar")).doesNotExist()
-        softly.assertThat(File(m2Root, "and-lib/0.1.0/and-lib-0.1.0-sources.jar")).doesNotExist()
-
-        softly.assertThat(File(m2Root, "and-lib_red_debug/0.1.0/and-lib_red_debug-0.1.0.module")).exists()
-        softly.assertThat(File(m2Root, "and-lib_red_debug/0.1.0/and-lib_red_debug-0.1.0.pom")).exists()
-        softly.assertThat(File(m2Root, "and-lib_red_debug/0.1.0/and-lib_red_debug-0.1.0.aar")).exists()
-        softly.assertThat(File(m2Root, "and-lib_red_debug/0.1.0/and-lib_red_debug-0.1.0-sources.jar")).doesNotExist()
-
-        softly.assertThat(File(m2Root, "and-lib_blue_debug/0.1.0/and-lib_blue_debug-0.1.0.module")).exists()
-        softly.assertThat(File(m2Root, "and-lib_blue_debug/0.1.0/and-lib_blue_debug-0.1.0.pom")).exists()
-        softly.assertThat(File(m2Root, "and-lib_blue_debug/0.1.0/and-lib_blue_debug-0.1.0.aar")).exists()
-        softly.assertThat(File(m2Root, "and-lib_blue_debug/0.1.0/and-lib_blue_debug-0.1.0-sources.jar")).doesNotExist()
-
-        softly.assertThat(File(m2Root, "and-lib_red_release/0.1.0/and-lib_red_release-0.1.0.module")).exists()
-        softly.assertThat(File(m2Root, "and-lib_red_release/0.1.0/and-lib_red_release-0.1.0.pom")).exists()
-        softly.assertThat(File(m2Root, "and-lib_red_release/0.1.0/and-lib_red_release-0.1.0.aar")).exists()
-        softly.assertThat(File(m2Root, "and-lib_red_release/0.1.0/and-lib_red_release-0.1.0-sources.jar")).doesNotExist()
-
-        softly.assertThat(File(m2Root, "and-lib_blue_release/0.1.0/and-lib_blue_release-0.1.0.module")).exists()
-        softly.assertThat(File(m2Root, "and-lib_blue_release/0.1.0/and-lib_blue_release-0.1.0.pom")).exists()
-        softly.assertThat(File(m2Root, "and-lib_blue_release/0.1.0/and-lib_blue_release-0.1.0.aar")).exists()
-        softly.assertThat(File(m2Root, "and-lib_blue_release/0.1.0/and-lib_blue_release-0.1.0-sources.jar")).doesNotExist()
-      }.assertAll()
-    }
-  }
-
   @Test
   internal fun `app can consume lib via redirecting pom`() {
     val testDir = testDir("pomLib")
