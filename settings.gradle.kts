@@ -18,6 +18,7 @@ rootProject.name = "android-components-plugin"
 
 include("plugin")
 
+val ACP_VERSION: String by settings
 val AGP_VERSION: String by settings
 val KOTLIN_VERSION: String by settings
 
@@ -39,7 +40,7 @@ pluginManagement {
 
 gradle.allprojects {
   group = "com.trevjonez.android-components"
-  version = "0.1.0"
+  version = ACP_VERSION
 
   repositories {
     google()
