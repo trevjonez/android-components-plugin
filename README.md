@@ -56,14 +56,14 @@ androidComponents {
 
 Android Gradle Plugin Behaviors
 
-| AGP Plugin ID            | Published Artifacts      |
-|--------------------------|--------------------------|
-|`com.android.library`     | AAR, Sources JAR         |
-|`com.android.application` | See Issue #2             |
-|`com.android.test`        | See Issue #3             |
-|`com.android.feature`     | See Issue #4             |
-|`com.android.instantapp`  | See Issue #5             |  
-|`com.android.bundle`      | See Issue #6             |  
+| AGP Plugin ID                | Published Artifacts      |
+|------------------------------|--------------------------|
+|`com.android.library`         | AAR, Sources JAR         |
+|`com.android.application`     | See [Issue #2]           |
+|`com.android.test`            | See [Issue #3]           |
+|`com.android.feature`         | See [Issue #4]           |
+|`com.android.instantapp`      | See [Issue #5]           |  
+|`com.android.dynamic-feature` | See [Issue #8]           |  
 
 ## Artifact Consumption
 #### .module metadata
@@ -106,25 +106,24 @@ dependencies {
 }
 ```
 
+#### AGP/Gradle Compatibility
+
+The following version combinations have been tested to work:
+
+| AGP Version    | Gradle Version | Android Components Version |
+|----------------|----------------|----------------------------|
+| 3.1.4          | 4.10           | 0.1.0                      |
+| 3.2.0-rc02     | 4.10           | 0.1.0                      |
+| 3.3.0-alpha08  | 4.10           | 0.1.0                      |
+
+
 #### Troubleshooting
 
 If you are met with issues surrounding variant mismatching review the AGP DSL
 documentation for [defaultConfig.missingDimensionStrategy] as the same rules apply.
-At that point if you are still unable to resolve the problems feel free to 
-[open a new issue] to discuss further. 
 
-[POM format]: https://maven.apache.org/pom.html
-[Gradle module metadata specification]: https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-specification.md
-[SoftwareComponent]: https://docs.gradle.org/current/javadoc/org/gradle/api/component/SoftwareComponent.html
-[ComponentWithVariants]: https://docs.gradle.org/current/javadoc/org/gradle/api/component/ComponentWithVariants.html
-[Gradle Plugin Portal]: https://plugins.gradle.org/
-[Android Gradle Plugin(s)]: https://developer.android.com/studio/releases/gradle-plugin
-[Maven-Publish plugin]: https://docs.gradle.org/current/userguide/publishing_maven.html
-[default publishing configuration on the AGP DSL]: https://google.github.io/android-gradle-dsl/current/com.android.build.gradle.LibraryExtension.html#com.android.build.gradle.LibraryExtension:defaultPublishConfig
-[defaultConfig.missingDimensionStrategy]: https://google.github.io/android-gradle-dsl/current/com.android.build.gradle.internal.dsl.DefaultConfig.html#com.android.build.gradle.internal.dsl.DefaultConfig:missingDimensionStrategy(java.lang.String,%20java.lang.String)
-[open a new issue]: https://github.com/trevjonez/android-components-plugin/issues/new
-[Settings.enableFeaturePreview]: https://docs.gradle.org/current/javadoc/org/gradle/api/initialization/Settings.html#enableFeaturePreview-java.lang.String-
-[AndroidComponentsExtension]: plugin/src/main/kotlin/com/trevjonez/acp/AndroidComponentsExtension.kt
+At that point if you are still unable to resolve the problem feel free to 
+[open a new issue] to discuss further. 
 
 ## License
 
@@ -141,3 +140,22 @@ At that point if you are still unable to resolve the problems feel free to
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
+    
+[POM format]: https://maven.apache.org/pom.html
+[Gradle module metadata specification]: https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-specification.md
+[SoftwareComponent]: https://docs.gradle.org/current/javadoc/org/gradle/api/component/SoftwareComponent.html
+[ComponentWithVariants]: https://docs.gradle.org/current/javadoc/org/gradle/api/component/ComponentWithVariants.html
+[Gradle Plugin Portal]: https://plugins.gradle.org/
+[Android Gradle Plugin(s)]: https://developer.android.com/studio/releases/gradle-plugin
+[Maven-Publish plugin]: https://docs.gradle.org/current/userguide/publishing_maven.html
+[default publishing configuration on the AGP DSL]: https://google.github.io/android-gradle-dsl/current/com.android.build.gradle.LibraryExtension.html#com.android.build.gradle.LibraryExtension:defaultPublishConfig
+[defaultConfig.missingDimensionStrategy]: https://google.github.io/android-gradle-dsl/current/com.android.build.gradle.internal.dsl.DefaultConfig.html#com.android.build.gradle.internal.dsl.DefaultConfig:missingDimensionStrategy(java.lang.String,%20java.lang.String)
+[open a new issue]: https://github.com/trevjonez/android-components-plugin/issues/new
+[Settings.enableFeaturePreview]: https://docs.gradle.org/current/javadoc/org/gradle/api/initialization/Settings.html#enableFeaturePreview-java.lang.String-
+[AndroidComponentsExtension]: plugin/src/main/kotlin/com/trevjonez/acp/AndroidComponentsExtension.kt
+
+[Issue #2]: https://github.com/trevjonez/android-components-plugin/issues/2
+[Issue #3]: https://github.com/trevjonez/android-components-plugin/issues/3
+[Issue #4]: https://github.com/trevjonez/android-components-plugin/issues/4
+[Issue #5]: https://github.com/trevjonez/android-components-plugin/issues/5
+[Issue #8]: https://github.com/trevjonez/android-components-plugin/issues/8

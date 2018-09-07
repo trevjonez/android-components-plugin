@@ -16,11 +16,6 @@
 
 package com.trevjonez.acp
 
-import com.android.build.gradle.AppPlugin
-import com.android.build.gradle.BundlePlugin
-import com.android.build.gradle.FeaturePlugin
-import com.android.build.gradle.InstantAppPlugin
-import com.android.build.gradle.TestPlugin
 import com.android.build.gradle.api.AndroidBasePlugin
 import com.trevjonez.acp.internal.plugins.AndroidLibraryComponentsPlugin
 import org.gradle.api.GradleException
@@ -29,7 +24,6 @@ import org.gradle.api.Project
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.findPlugin
-import org.gradle.kotlin.dsl.hasPlugin
 import kotlin.reflect.jvm.jvmName
 
 class AndroidComponentsPlugin : Plugin<Project> {
@@ -65,8 +59,8 @@ class AndroidComponentsPlugin : Plugin<Project> {
   }
 
   private fun Project.githubIssueMessage() = AGP_PLUGIN_ISSUES
-      .filter { (pluginType, _) ->
-        plugins.hasPlugin(pluginType)
+      .filter { (pluginId, _) ->
+        plugins.hasPlugin(pluginId)
       }
       .takeIf {
         it.isNotEmpty()
@@ -74,8 +68,8 @@ class AndroidComponentsPlugin : Plugin<Project> {
       ?.joinToString(
           prefix = "The follow android plugins were found but are not yet supported:\n",
           separator = "\n\n"
-      ) { (pluginType, issueNumber) ->
-        """${pluginType.jvmName}
+      ) { (pluginId, issueNumber) ->
+        """$pluginId
           |  Github Issue: $ACP_ISSUES$issueNumber""".trimMargin()
       }
 
@@ -88,13 +82,13 @@ class AndroidComponentsPlugin : Plugin<Project> {
     private const val ACP_ISSUES = "https://github.com/trevjonez/android-components-plugin/issues/"
     private const val ACP_NEW_ISSUE = ACP_ISSUES + "new"
     private val AGP_PLUGIN_ISSUES = listOf(
-        AppPlugin::class to 2,
-        TestPlugin::class to 3,
-        FeaturePlugin::class to 4,
-        InstantAppPlugin::class to 5,
-        BundlePlugin::class to 6
+        "com.android.application" to 2,
+        "com.android.test" to 3,
+        "com.android.library" to 4,
+        "com.android.instantapp" to 5,
+        "com.android.dynamic-feature" to 8
     )
   }
 
-  class MissingPluginException(message: String): GradleException(message)
+  class MissingPluginException(message: String) : GradleException(message)
 }
