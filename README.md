@@ -43,9 +43,10 @@ that represents the entire module. By implementing [ComponentWithVariants] gradl
 will automatically produce the appropriate .module metadata file when attached to
 a publication.
 
-The published artifact coordinates the project group, name, and version. 
+The published artifact coordinates are inferred from the 
+project group, name, and version properties. 
 
-The primary artifact id can be overridden via the [AndroidComponentsExtension]
+The primary artifact id can be overridden via the [AndroidComponentsExtension]. 
 Project naming should be preferred over using this override.
 ```kotlin
 //build.gradle(.kts)
