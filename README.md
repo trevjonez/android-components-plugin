@@ -145,7 +145,7 @@ At that point if you are still unable to resolve the problem feel free to
 [Gradle module metadata specification]: https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-specification.md
 [SoftwareComponent]: https://docs.gradle.org/current/javadoc/org/gradle/api/component/SoftwareComponent.html
 [ComponentWithVariants]: https://docs.gradle.org/current/javadoc/org/gradle/api/component/ComponentWithVariants.html
-[Gradle Plugin Portal]: https://plugins.gradle.org/
+[Gradle Plugin Portal]: https://plugins.gradle.org/plugin/com.trevjonez.android-components
 [Android Gradle Plugin(s)]: https://developer.android.com/studio/releases/gradle-plugin
 [Maven-Publish plugin]: https://docs.gradle.org/current/userguide/publishing_maven.html
 [default publishing configuration on the AGP DSL]: https://google.github.io/android-gradle-dsl/current/com.android.build.gradle.LibraryExtension.html#com.android.build.gradle.LibraryExtension:defaultPublishConfig
