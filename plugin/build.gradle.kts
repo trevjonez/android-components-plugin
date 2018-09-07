@@ -32,6 +32,8 @@ gradlePlugin {
     create("android-components") {
       id = "com.trevjonez.android-components"
       implementationClass = "com.trevjonez.acp.AndroidComponentsPlugin"
+      description = "Variant aware android publishing, via `maven-publish` plugin."
+      displayName = id
     }
   }
 }
@@ -72,8 +74,6 @@ pluginBundle {
   vcsUrl = "git@github.com:trevjonez/android-components-plugin.git"
   (plugins) {
     "android-components" {
-      displayName = name
-      description = "Variant aware android publishing, via `maven-publish` plugin."
       tags = listOf("android", "maven", "variant", "aar", "android-library",
           "publish", "components", ".module", "metadata")
     }

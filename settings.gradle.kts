@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-rootProject.name = "android-components"
+rootProject.name = "android-components-plugin"
 
 include("plugin")
 
