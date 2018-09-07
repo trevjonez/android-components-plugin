@@ -26,13 +26,20 @@ import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.findPlugin
 import kotlin.reflect.jvm.jvmName
 
+/**
+ * This plugin enables publishing android projects with `GRADLE_METADATA` support.
+ */
 class AndroidComponentsPlugin : Plugin<Project> {
 
+  /**
+   * Extend the target project with the appropriate sub plugin and extension.
+   */
   override fun apply(project: Project) {
     project.pluginManager.withPlugin("com.android.library") {
       addExtension(project)
       project.pluginManager.apply(AndroidLibraryComponentsPlugin::class.java)
     }
+
     project.afterEvaluate {
       extensions.findByType(AndroidComponentsExtension::class.java)
           ?: missingPlugin<AndroidBasePlugin>(
@@ -90,5 +97,8 @@ class AndroidComponentsPlugin : Plugin<Project> {
     )
   }
 
+  /**
+   * Error indicating in appropriate usage of the [AndroidComponentsPlugin]
+   */
   class MissingPluginException(message: String) : GradleException(message)
 }

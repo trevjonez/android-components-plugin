@@ -38,6 +38,21 @@ gradlePlugin {
   }
 }
 
+pluginBundle {
+  website = "https://github.com/trevjonez/android-components-plugin"
+  vcsUrl = "git@github.com:trevjonez/android-components-plugin.git"
+  tags = listOf("android", "maven", "variant", "aar", "android-library",
+      "publish", ".module", "metadata")
+}
+
+dependencies {
+  compile("com.android.tools.build:gradle")
+
+  testCompile("org.assertj:assertj-core:3.11.0")
+  testCompile("org.junit.jupiter:junit-jupiter-api:5.2.0")
+  testRuntime("org.junit.jupiter:junit-jupiter-engine:5.2.0")
+}
+
 tasks.named("test").configure {
   this as Test
   useJUnitPlatform()
@@ -57,25 +72,5 @@ tasks.named("test").configure {
   inputs.dir("../and-lib/src")
   inputs.dir("../and-app/src")
 
-  outputs.dir("../and-lib/build")
-  outputs.dir("../and-app/build")
-}
-
-dependencies {
-  compile("com.android.tools.build:gradle")
-
-  testCompile("org.assertj:assertj-core:3.11.0")
-  testCompile("org.junit.jupiter:junit-jupiter-api:5.2.0")
-  testRuntime("org.junit.jupiter:junit-jupiter-engine:5.2.0")
-}
-
-pluginBundle {
-  website = "https://github.com/trevjonez/android-components-plugin"
-  vcsUrl = "git@github.com:trevjonez/android-components-plugin.git"
-  (plugins) {
-    "android-components" {
-      tags = listOf("android", "maven", "variant", "aar", "android-library",
-          "publish", "components", ".module", "metadata")
-    }
-  }
+  outputs.dir("$buildDir/tests")
 }

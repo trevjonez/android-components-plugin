@@ -16,6 +16,10 @@
 
 package com.trevjonez.acp
 
+/**
+ * A project extension named "androidComponents" that provides configuration of
+ * the [AndroidComponentsPlugin]
+ */
 open class AndroidComponentsExtension {
 
   /**
@@ -23,11 +27,4 @@ open class AndroidComponentsExtension {
    * a reference to `project.name`.
    */
   var artifactId: String? = null
-
-  /**
-   * Groovy dsl
-   */
-  fun artifactId(id: String?) {
-    artifactId = id
-  }
 }
