@@ -39,6 +39,8 @@ internal class AndroidComponentsPluginTest {
         .withProjectDir(dest)
         .forwardOutput()
         .withPluginClasspath()
+        .withGradleInstallation(File("/Users/tjones/gradle-source-build/"))
+        //built from https://github.com/gradle/gradle/pull/6820/commits/2ce76182215fa978352e199e46b27c98b0d57bb8
   }
 
   private fun testDir(testDir: String) = File(buildDir, "tests/$testDir")
@@ -161,6 +163,50 @@ internal class AndroidComponentsPluginTest {
 
     assertThat(buildResult.task(":assemble")!!.outcome)
         .isEqualTo(TaskOutcome.SUCCESS)
+
+    assertThat(buildResult.output).apply {
+
+      contains("""
+        |debugCompileClasspath - Resolved configuration for compilation for variant: debug
+        |\--- com.trevjonez:and-lib:0.1.0
+        |     \--- com.trevjonez:and-lib_release:0.1.0
+        |          \--- io.reactivex.rxjava2:rxjava:2.2.0
+        |               \--- org.reactivestreams:reactive-streams:1.0.2
+    """.trimMargin())
+
+      contains("""
+        |debugRuntimeClasspath - Resolved configuration for runtime for variant: debug
+        |\--- com.trevjonez:and-lib:0.1.0
+        |     \--- com.trevjonez:and-lib_release:0.1.0
+        |          +--- io.reactivex.rxjava2:rxjava:2.2.0
+        |          |    \--- org.reactivestreams:reactive-streams:1.0.2
+        |          \--- com.squareup.moshi:moshi:1.6.0
+        |               \--- com.squareup.okio:okio:1.14.0
+    """.trimMargin())
+
+      contains("""
+        |implementation - Implementation only dependencies for 'main' sources. (n)
+        |\--- com.trevjonez:and-lib:0.1.0 (n)
+    """.trimMargin())
+
+      contains("""
+        |releaseCompileClasspath - Resolved configuration for compilation for variant: release
+        |\--- com.trevjonez:and-lib:0.1.0
+        |     \--- com.trevjonez:and-lib_release:0.1.0
+        |          \--- io.reactivex.rxjava2:rxjava:2.2.0
+        |               \--- org.reactivestreams:reactive-streams:1.0.2
+    """.trimMargin())
+
+      contains("""
+        |releaseRuntimeClasspath - Resolved configuration for runtime for variant: release
+        |\--- com.trevjonez:and-lib:0.1.0
+        |     \--- com.trevjonez:and-lib_release:0.1.0
+        |          +--- io.reactivex.rxjava2:rxjava:2.2.0
+        |          |    \--- org.reactivestreams:reactive-streams:1.0.2
+        |          \--- com.squareup.moshi:moshi:1.6.0
+        |               \--- com.squareup.okio:okio:1.14.0
+    """.trimMargin())
+    }
   }
 
   @Test
