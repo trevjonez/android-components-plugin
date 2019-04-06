@@ -2,6 +2,10 @@
 
 Variant aware artifact publishing for android projects.
 
+## Project Status
+
+Icebox for now. Life and work are needing my time and it seems that the tools team at google was just unblocked by gradle with changes to the publishing api in 5.3.
+
 ## Preface
 
 Gradle and the [Android Gradle Plugin(s)] (AGP) provide/consume dependencies 
